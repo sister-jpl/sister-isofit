@@ -21,9 +21,12 @@
 
 # Get directories and paths for scripts
 imgspec_dir=$( cd "$(dirname "$0")" ; pwd -P )
-isofit_dir=$(dirname $imgspec_dir)
+sister_isofit_dir=$(dirname $imgspec_dir)
+apps_dir=$(dirname $imgspec_dir)
+isofit_dir="${apps_dir}/isofit"
 
 echo "imgspec_dir is $imgspec_dir"
+echo "sister_isofit_dir is $sister_isofit_dir"
 echo "isofit_dir is $isofit_dir"
 
 # input/output dirs
