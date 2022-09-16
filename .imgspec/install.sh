@@ -3,6 +3,6 @@ pge_dir=$(dirname ${imgspec_dir})
 app_dir=$(dirname ${pge_dir})
 
 cd $app_dir
-git clone https://github.com/isofit/isofit.git -b v2.9.1
+git clone https://github.com/isofit/isofit.git -b v2.9.2
 cd isofit
 pip install -e .
