@@ -34,9 +34,7 @@ input="input"
 mkdir -p output temp
 
 # .imgspec paths
-# apply_glt_exe="$imgspec_dir/apply_glt.py"
 wavelength_file_exe="$imgspec_dir/wavelength_file.py"
-# upgrade_exe="$imgspec_dir/upgrade.py"
 covnert_csv_to_envi_exe="$imgspec_dir/convert_csv_to_envi.py"
 surface_json_path="$imgspec_dir/surface.json"
 
@@ -66,18 +64,7 @@ surface_liquids_img_path=${surface_liquids_csv_path/.csv/}
 tar -xzvf input/*.tar.gz -C input
 
 # Get input paths
-###############
-#rdn_path=$(python ${imgspec_dir}/get_paths_from_granules.py -p rdn)
-#echo "Found input radiance file: $rdn_path"
-#loc_path=$(python ${imgspec_dir}/get_paths_from_granules.py -p loc)
-#echo "Found input loc file: $loc_path"
-#igm_path=$(python ${imgspec_dir}/get_paths_from_granules.py -p igm)
-#echo "Found input igm file: $igm_path"
-#glt_path=$(python ${imgspec_dir}/get_paths_from_granules.py -p glt)
-#echo "Found input glt file: $glt_path"
-#obs_ort_path=$(python ${imgspec_dir}/get_paths_from_granules.py -p obs_ort)
-#echo "Found input obs_ort file: $obs_ort_path"
-##############################
+
 rdn_path=$(ls input/*/*RDN* | grep -v '.hdr')
 loc_path=$(ls input/*/*LOC* | grep -v '.hdr')
 obs_path=$(ls input/*/*OBS* | grep -v '.hdr')
@@ -90,62 +77,18 @@ rdn_name=$(basename $rdn_path)
 output_base_name=$(echo "${rdn_name/L1B_RDN/"L2A_RFL"}")
 
 # Get instrument type
-######################################
-#rdn_name=$(basename $rdn_path)
-#instrument=""
-#if [[ $rdn_name == f* ]]; then
-#    instrument="avcl"
-#elif [[ $rdn_name == ang* ]]; then
-#    instrument="ang"
-#elif [[ $rdn_name == PRS* ]]; then
-#    instrument="prisma"
-#fi
-#echo "Instrument is $instrument"
-#####################################
+
 if [[ $rdn_name == *AVCL* ]] || [[ $rdn_name == *AVNG* ]]; then
-    instrument=NA-$(echo $rdn_name | cut -c13-20)
+    instrument=NA-$(echo $rdn_name | cut -c8-11)
 elif [[ $rdn_name == *DESIS* ]]; then
-    instrument=NA-$(echo $rdn_name | cut -c14-21)
+    instrument=NA-$(echo $rdn_name | cut -c8-12)
 elif [[ $rdn_name == *PRISMA* ]]; then
-    instrument=NA-$(echo $rdn_name | cut -c15-22)
+    instrument=NA-$(echo $rdn_name | cut -c8-13)
 fi
 
 echo "Instrument is $instrument"
 echo "Output prefix is $output_base_name"
 
-#######################################
-## Get the orthocorrected loc/igm file depending on instrument
-#ort_suffix="_ort"
-#loc_ort_path=""
-#if [[ $instrument == "avcl" ]]; then
-#    # AVIRIS Classic typically includes an IGM file with lon, lat, alt bands
-#    loc_ort_path=$igm_path$ort_suffix
-#    apply_glt_cmd="python $apply_glt_exe $igm_path $glt_path $loc_ort_path --one_based_glt=1"
-#    echo "Executing command: $apply_glt_cmd"
-#    $apply_glt_cmd
-#elif [[ $instrument == "ang" ]]; then
-#    # For AVIRIS-NG we must orthocorrect the given loc file
-#    loc_ort_path=$loc_path$ort_suffix
-#    apply_glt_cmd="python $apply_glt_exe $loc_path $glt_path $loc_ort_path --one_based_glt=1"
-#    echo "Executing command: $apply_glt_cmd"
-#    $apply_glt_cmd
-#elif [[ $instrument == "prisma" ]]; then
-#    # PRISMA already has a projected loc file
-#    loc_ort_path=$loc_path
-#fi
-#echo "Based on instrument, using loc_ort_path: $loc_ort_path"
-
-## Convert AVIRIS Classic radiance to 32-bit float and scale
-#if [[ $instrument == "avcl" ]]; then
-#    upgrade_suffix="_up"
-#    rdn_up_path=$rdn_path$upgrade_suffix
-#    upgrade_cmd="python $upgrade_exe $rdn_path $rdn_up_path"
-#    echo "Executing command: $upgrade_cmd"
-#    $upgrade_cmd
-#    # Use new upgraded file in place of original radiance file
-#    rdn_path=$rdn_up_path
-#fi
-######################################
 # Create wavelength file
 wavelength_file_cmd="python $wavelength_file_exe $rdn_path.hdr $input/wavelengths.txt"
 echo "Executing command: $wavelength_file_cmd"
@@ -182,26 +125,7 @@ python -c "from isofit.utils import surface_model; surface_model('$input/surface
 # Run isofit
 working_dir=$(pwd)
 isofit_cmd=""
-##########################
-#if [[ $instrument == "avcl" ]] || [[ $instrument == "ang" ]]; then
-#    isofit_cmd="""python $apply_oe_exe $rdn_path $loc_ort_path $obs_ort_path $working_dir #$instrument --presolve=1 \
-#    --empirical_line=1 --emulator_base=$EMULATOR_DIR --n_cores $6 --wavelength_path #$input/wavelengths.txt \
-#    --segmentation_size $5 --surface_path $input/surface.mat --log_file isofit.log"""
-#elif [[ $instrument == "prisma" ]]; then
-#    # Use NA-YYYYMMDD for instrument
-#    prisma_prefix="NA-"
-#    instrument=$prisma_prefix$(echo $rdn_name | cut -c5-12)
-#    echo "For PRISMA, using $instrument as instrument argument in apply_oe command"
-#    # Get rdn_factors_file
-#    rdn_factors_path="$input/rdn_factors.txt"
-#    echo "Getting radiance_factors file from $7"
-#    curl --retry 10 --output $rdn_factors_path $7
-#    isofit_cmd="""python $apply_oe_exe $rdn_path $loc_ort_path $obs_ort_path $working_dir #$instrument --presolve=1 \
-#    --empirical_line=1 --emulator_base=$EMULATOR_DIR --n_cores $6 --wavelength_path #$input/wavelengths.txt \
-#    --segmentation_size $5 --rdn_factors_path $rdn_factors_path --surface_path $input/surface.mat \
-#    --log_file isofit.log"""
-#fi
-################################
+
 isofit_cmd="""python $apply_oe_exe $rdn_path $loc_path $obs_path ./temp $instrument --presolve=1 \
 --empirical_line=1 --emulator_base=$EMULATOR_DIR --n_cores $6 --wavelength_path $input/wavelengths.txt \
 --segmentation_size $5 --surface_path $input/surface.mat \
@@ -209,11 +133,6 @@ isofit_cmd="""python $apply_oe_exe $rdn_path $loc_path $obs_path ./temp $instrum
 
 echo "Executing command: $isofit_cmd"
 $isofit_cmd
-
-
-## Clean up output directory
-#rm -f output/*lbl*
-#rm -f output/*subs*
 
 # Make folder to hold output files
 mkdir output/$output_base_name
@@ -238,7 +157,7 @@ cd output
 mv *.log $output_base_name
 
 #Generate metadata
-python ${imgspec_dir}/generate_metadata.py */*RFL*.hdr .
+#python ${imgspec_dir}/generate_metadata.py */*RFL*.hdr .
 
 #Compress output files
 tar czvf ${output_base_name}.tar.gz $output_base_name
