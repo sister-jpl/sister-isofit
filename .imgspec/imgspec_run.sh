@@ -157,7 +157,7 @@ cd output
 mv *.log $output_base_name
 
 #Generate metadata
-#python ${imgspec_dir}/generate_metadata.py */*RFL*.hdr .
+python ${imgspec_dir}/generate_metadata.py */*RFL*.hdr .
 
 #Compress output files
 tar czvf ${output_base_name}.tar.gz $output_base_name
