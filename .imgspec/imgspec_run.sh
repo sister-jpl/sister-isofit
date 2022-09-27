@@ -81,7 +81,7 @@ output_base_name=$(echo "${rdn_name/L1B_RDN/"L2A_RFL"}")
 if [[ $rdn_name == *AVCL* ]] || [[ $rdn_name == *AVNG* ]]; then
     instrument=NA-$(echo $rdn_name | cut -c13-20)
 elif [[ $rdn_name == *DESIS* ]]; then
-    instrument=NA-$(echo $rdn_name | cut -c4-21)
+    instrument=NA-$(echo $rdn_name | cut -c14-21)
 elif [[ $rdn_name == *PRISMA* ]]; then
     instrument=NA-$(echo $rdn_name | cut -c15-22)
 fi
