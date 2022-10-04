@@ -7,3 +7,4 @@ git clone https://github.com/isofit/isofit.git -b v2.9.2
 cd isofit
 pip install -e .
 pip install hy_tools_lite
+pip install Pillow
