@@ -123,7 +123,6 @@ echo "Building surface model using config file $input/surface.json"
 python -c "from isofit.utils import surface_model; surface_model('$input/surface.json')"
 
 # Run isofit
-working_dir=$(pwd)
 isofit_cmd=""
 
 isofit_cmd="""python $apply_oe_exe $rdn_path $loc_path $obs_path ./temp $instrument --presolve=1 \
@@ -159,7 +158,12 @@ mv *.log $output_base_name
 #Generate metadata
 python ${imgspec_dir}/generate_metadata.py */*RFL*.hdr .
 
+# Create quicklook
+python ${imgspec_dir}/generate_quicklook.py $(ls */*RFL* | grep -v '.hdr') .
+
 #Compress output files
 tar czvf ${output_base_name}.tar.gz $output_base_name
 
 rm -r $output_base_name
+
+cp ../run.log ${out_dir}.log
