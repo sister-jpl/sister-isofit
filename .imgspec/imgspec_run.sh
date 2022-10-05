@@ -159,11 +159,11 @@ mv *.log $output_base_name
 python ${imgspec_dir}/generate_metadata.py */*RFL*.hdr .
 
 # Create quicklook
-python ${imgspec_dir}/generate_quicklook.py $(ls */*RFL* | grep -v '.hdr') .
+python ${imgspec_dir}/generate_quicklook.py $(ls */*RFL* | grep -v '.hdr\|.log') .
 
 #Compress output files
 tar czvf ${output_base_name}.tar.gz $output_base_name
 
 rm -r $output_base_name
 
-cp ../run.log ${out_dir}.log
+cp ../run.log ${output_base_name}.log
