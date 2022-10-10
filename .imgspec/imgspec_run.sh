@@ -14,10 +14,12 @@
 # $4: EcoSIS URL of snow_and_liquids_reflectance_spectra
 # $5: ISOFIT apply_oe.py segmentation_size argument
 # $6: ISOFIT apply_oe.py n_cores argument
-# $7: URL of radiance_factors_file --- removed
 #
 # In addition to the positional arguments, this script expects a downloaded radiance granule to be present in a folder
 # called "input".
+
+# Use isofit conda env from docker image
+source activate isofit
 
 # Get directories and paths for scripts
 imgspec_dir=$( cd "$(dirname "$0")" ; pwd -P )
