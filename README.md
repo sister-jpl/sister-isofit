@@ -85,13 +85,13 @@ In addition, a log file and a quicklook image are generated for each product wit
         "script_command": "sister-isofit/.imgspec/imgspec_run.sh",
         "repo_url": "https://gitlab.com/geospec/sister-isofit.git",
         "algorithm_name": "sister-isofit",
-        "code_version": "sister-dev",
+        "code_version": "1.0.0",
         "algorithm_description": "The SISTER wrapper for ISOFIT. ISOFIT (Imaging Spectrometer Optimal FITting) contains a set of routines and utilities for fitting surface, atmosphere and instrument models to imaging spectrometer data.",
         "environment_name":"ubuntu",
         "disk_space": "70GB",
         "queue": "sister-job_worker-32gb",
         "build_command": "sister-isofit/.imgspec/install.sh",
-        "docker_container_url": "localhost:5050/root/ade_base_images/isofit:latest",
+        "docker_container_url": "localhost:5050/base_images/isofit:1.0",
         "algorithm_params": [
             {
                 "field": "l1_granule",
@@ -138,8 +138,8 @@ In addition, a log file and a quicklook image are generated for each product wit
     
     isofit_job_response = maap.submitJob(
         algo_id="sister-isofit_ubuntu",
-        version="sister-dev",
-        l1_granule="http://sister-ops-workspace.s3-website.us-west-2.amazonaws.com/null/dps_output/sister-l1_preprocess_ubuntu/master/2022/08/23/17/17/58/501309/PRS_20200917091806_20200917091810_0001_l1p.tar.gz",
+        version="1.0.0",
+        l1_granule="http://sister-ops-workspace.s3.us-west-2.amazonaws.com/null/dps_output/sister-preprocess_ubuntu/sister-dev/2022/10/05/15/01/31/456920/SISTER_DESIS_20220606t114731_L1B_RDN_000.tar.gz",
         surface_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-surface-reflectance-spectra/export",
         vegetation_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-vegetation-reflectance-spectra/export",
         water_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-water-reflectance-spectra/export",
@@ -149,6 +149,6 @@ In addition, a log file and a quicklook image are generated for each product wit
         publish_to_cmr=False,
         cmr_metadata={},
         queue="sister-job_worker-32gb",
-        identifier="PRS_20200917091806_20200917091810_0001")
+        identifier="SISTER_DESIS_20220606t114731_L1B_RDN_000")
     
     print(isofit_job_response.id, isofit_job_response.status)

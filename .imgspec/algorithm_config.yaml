@@ -4,8 +4,8 @@ algo_name: sister-isofit
 version: 1.0.0
 environment: ubuntu
 repository_url: https://gitlab.com/geospec/sister-isofit.git
-# TODO: Get correct docker base url
-docker_url: registry.imgspec.org/root/ade_base_images/isofit:latest
+docker_url: localhost:5050/base_images/isofit:1.0
+# See corresponding Dockerfile at https://gitlab.com/geospec/base-images/-/blob/main/isofit/docker/Dockerfile
 build_command: sister-isofit/.imgspec/install.sh
 
 # fill out these fields
