@@ -3,7 +3,7 @@
 """
 SISTER
 Space-based Imaging Spectroscopy and Thermal PathfindER
-Author: Adam Chlus
+Author: Adam Chlus, Winston Olson-Duvall
 """
 
 import json
@@ -13,8 +13,8 @@ import sys
 
 def main():
     """
-        This function takes as input the path to a inputs.json file and exports a run config json
-        containing the arguments need to run the SISTER ISOFIT PGE.
+        This function takes as input the path to an inputs.json file and exports a run config json
+        containing the arguments needed to run the SISTER ISOFIT PGE.
 
     """
 
