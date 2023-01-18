@@ -1,5 +1,4 @@
-imgspec_dir=$(cd "$(dirname "$0")" ; pwd -P)
-pge_dir=$(dirname ${imgspec_dir})
+pge_dir=$(cd "$(dirname "$0")" ; pwd -P)
 app_dir=$(dirname ${pge_dir})
 
 # Use isofit conda env from docker image
