@@ -43,7 +43,7 @@ def generate_metadata(run_config, output_path):
     metadata["product"] = "RFL"
     metadata["processing_level"] = "L2A"
     with open(output_path, "w") as f:
-        json.dump(metadata, indent=4)
+        json.dump(metadata, f, indent=4)
 
 
 def generate_quicklook(rfl_img_path, output_path):
