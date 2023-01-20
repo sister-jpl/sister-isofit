@@ -91,18 +91,20 @@ def main():
     isofit_dir = os.path.join(os.path.dirname(sister_isofit_dir), "isofit")
 
     rdn_basename = os.path.basename(run_config["inputs"]["file"][0]["l1_granule"])
+    loc_basename = f"{rdn_basename}_LOC"
+    obs_basename = f"{rdn_basename}_OBS"
     rfl_basename = rdn_basename.replace("L1B_RDN", "L2A_RFL")
     rdn_img_path = f"input/{rdn_basename}/{rdn_basename}"
     rdn_hdr_path = f"input/{rdn_basename}/{rdn_basename}.hdr"
-    loc_img_path = f"input/{rdn_basename}/{rdn_basename}_LOC"
-    loc_hdr_path = f"input/{rdn_basename}/{rdn_basename}_LOC.hdr"
-    obs_img_path = f"input/{rdn_basename}/{rdn_basename}_OBS"
-    obs_hdr_path = f"input/{rdn_basename}/{rdn_basename}_OBS.hdr"
+    loc_img_path = f"input/{rdn_basename}/{loc_basename}"
+    loc_hdr_path = f"input/{rdn_basename}/{loc_basename}.hdr"
+    obs_img_path = f"input/{rdn_basename}/{obs_basename}"
+    obs_hdr_path = f"input/{rdn_basename}/{obs_basename}.hdr"
 
     # Rename and remove ".bin" from ENVI binary files for isofit compatibility
-    subprocess.run(f"pushd input/{rdn_basename}; ln -s {rdn_img_path}.bin {rdn_img_path}; popd", shell=True)
-    subprocess.run(f"pushd input/{rdn_basename}; ln -s {loc_img_path}.bin {loc_img_path}; popd", shell=True)
-    subprocess.run(f"pushd input/{rdn_basename}; ln -s {obs_img_path}.bin {obs_img_path}; popd", shell=True)
+    subprocess.run(f"cd input/{rdn_basename}; ln -s {rdn_basename}.bin {rdn_basename}; cd ../..", shell=True)
+    subprocess.run(f"cd input/{rdn_basename}; ln -s {loc_basename}.bin {loc_basename}; cd ../..", shell=True)
+    subprocess.run(f"cd input/{rdn_basename}; ln -s {obs_basename}.bin {obs_basename}; cd ../..", shell=True)
 
     # sensor is NA-YYYYMMDD
     sensor = f"NA-{rdn_basename.split('_')[4][:8]}"
