@@ -14,7 +14,10 @@ import sys
 import numpy as np
 import spectral.io.envi as envi
 
-# from isofit.utils import surface_model
+from PIL import Image
+
+import hytools_lite as ht
+from isofit.utils import surface_model
 
 
 def generate_wavelengths(rdn_hdr_path, output_path):
@@ -32,6 +35,43 @@ def generate_wavelengths(rdn_hdr_path, output_path):
 
     # Save file
     np.savetxt(output_path, np.array(wl_arr, dtype=np.float32))
+
+
+def generate_metadata(run_config, output_path):
+    # Create .met.json file from runconfig
+    metadata = run_config["metadata"]
+    metadata["product"] = "RFL"
+    metadata["processing_level"] = "L2A"
+    with open(output_path, "w") as f:
+        json.dump(metadata, indent=4)
+
+
+def generate_quicklook(rfl_img_path, output_path):
+    # Generate a quicklook browse image
+    img = ht.HyTools()
+    img.read_file(rfl_img_path)
+
+    if 'DESIS' in img.base_name:
+        band3 = img.get_wave(560)
+        band2 = img.get_wave(850)
+        band1 = img.get_wave(660)
+    else:
+        band3 = img.get_wave(560)
+        band2 = img.get_wave(850)
+        band1 = img.get_wave(1660)
+
+    rgb =  np.stack([band1, band2, band3])
+    rgb[rgb == img.no_data] = np.nan
+
+    rgb = np.moveaxis(rgb,0,-1).astype(float)
+    bottom = np.nanpercentile(rgb, 5, axis=(0, 1))
+    top = np.nanpercentile(rgb, 95, axis=(0, 1))
+    rgb = np.clip(rgb, bottom, top)
+    rgb = (rgb - np.nanmin(rgb, axis=(0, 1))) / (np.nanmax(rgb, axis=(0, 1)) - np.nanmin(rgb, axis=(0, 1)))
+    rgb = (rgb * 255).astype(np.uint8)
+
+    im = Image.fromarray(rgb)
+    im.save(output_path)
 
 
 def main():
@@ -82,7 +122,7 @@ def main():
 
     # Copy surface model files to input folder and generate surface model
     subprocess.run(f"cp {sister_isofit_dir}/surface_model/* input/", shell=True)
-    # surface_model("input/surface.json")
+    surface_model("input/surface.json")
 
     # Run isofit
     cmd = [
@@ -103,11 +143,18 @@ def main():
         f"--log_file=output/{rfl_basename}.log"
     ]
     print(" ".join(cmd))
-    # subprocess.run(" ".join(cmd), shell=True)
+    subprocess.run(" ".join(cmd), shell=True)
+
+    # Generate metadata in .met.json file
+    met_json_path = f"output/{rfl_basename}.met.json"
+    generate_metadata(run_config, met_json_path)
 
     # Rename outputs
+    rfl_img_path = f"output/{rfl_basename}.bin"
 
-    # Generate metadata
+    # Generate quicklook
+    rfl_ql_path = f"output/{rfl_basename}.png"
+    generate_quicklook(rfl_img_path, rfl_ql_path)
 
 
 if __name__ == "__main__":
