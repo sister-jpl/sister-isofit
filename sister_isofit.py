@@ -100,9 +100,9 @@ def main():
     obs_hdr_path = f"input/{rdn_basename}/{rdn_basename}_OBS.hdr"
 
     # Rename and remove ".bin" from ENVI binary files for isofit compatibility
-    subprocess.run(f"mv {rdn_img_path}.bin {rdn_img_path}", shell=True)
-    subprocess.run(f"mv {loc_img_path}.bin {loc_img_path}", shell=True)
-    subprocess.run(f"mv {obs_img_path}.bin {obs_img_path}", shell=True)
+    subprocess.run(f"pushd input/{rdn_basename}; ln -s {rdn_img_path}.bin {rdn_img_path}; popd", shell=True)
+    subprocess.run(f"pushd input/{rdn_basename}; ln -s {loc_img_path}.bin {loc_img_path}; popd", shell=True)
+    subprocess.run(f"pushd input/{rdn_basename}; ln -s {obs_img_path}.bin {obs_img_path}; popd", shell=True)
 
     # sensor is NA-YYYYMMDD
     sensor = f"NA-{rdn_basename.split('_')[4][:8]}"
