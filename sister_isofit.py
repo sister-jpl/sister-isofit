@@ -17,7 +17,7 @@ import spectral.io.envi as envi
 from PIL import Image
 
 import hytools_lite as ht
-from isofit.utils import surface_model
+#from isofit.utils import surface_model
 
 
 def generate_wavelengths(rdn_hdr_path, output_path):
@@ -83,8 +83,14 @@ def main():
     in_file = sys.argv[1]
 
     # Read in runconfig
+    print("Reading in runconfig")
     with open(in_file, "r") as f:
         run_config = json.load(f)
+
+    # Make work dir
+    print("Making work directory and symlinking input files")
+    if not os.path.exists("work"):
+        subprocess.run("mkdir work", shell=True)
 
     # Define paths and variables
     sister_isofit_dir = os.path.abspath(os.path.dirname(__file__))
@@ -94,39 +100,37 @@ def main():
     loc_basename = f"{rdn_basename}_LOC"
     obs_basename = f"{rdn_basename}_OBS"
     rfl_basename = rdn_basename.replace("L1B_RDN", "L2A_RFL")
-    rdn_img_path = f"input/{rdn_basename}/{rdn_basename}"
-    rdn_hdr_path = f"input/{rdn_basename}/{rdn_basename}.hdr"
-    loc_img_path = f"input/{rdn_basename}/{loc_basename}"
-    loc_hdr_path = f"input/{rdn_basename}/{loc_basename}.hdr"
-    obs_img_path = f"input/{rdn_basename}/{obs_basename}"
-    obs_hdr_path = f"input/{rdn_basename}/{obs_basename}.hdr"
+    rdn_img_path = f"work/{rdn_basename}"
+    rdn_hdr_path = f"work/{rdn_basename}.hdr"
+    loc_img_path = f"work/{loc_basename}"
+    loc_hdr_path = f"work/{loc_basename}.hdr"
+    obs_img_path = f"work/{obs_basename}"
+    obs_hdr_path = f"work/{obs_basename}.hdr"
 
-    # Rename and remove ".bin" from ENVI binary files for isofit compatibility
-    subprocess.run(f"cd input/{rdn_basename}; ln -s {rdn_basename}.bin {rdn_basename}; cd ../..", shell=True)
-    subprocess.run(f"cd input/{rdn_basename}; ln -s {loc_basename}.bin {loc_basename}; cd ../..", shell=True)
-    subprocess.run(f"cd input/{rdn_basename}; ln -s {obs_basename}.bin {obs_basename}; cd ../..", shell=True)
+    # Symlink/rename the input files into the work directory (don't use .bin on symlinks)
+    subprocess.run(f"ln -s ../input/{rdn_basename}/{rdn_basename}.bin {rdn_img_path}", shell=True)
+    subprocess.run(f"ln -s ../input/{rdn_basename}/{rdn_basename}.hdr {rdn_hdr_path}", shell=True)
+    subprocess.run(f"ln -s ../input/{rdn_basename}/{loc_basename}.bin {loc_img_path}", shell=True)
+    subprocess.run(f"ln -s ../input/{rdn_basename}/{loc_basename}.hdr {loc_hdr_path}", shell=True)
+    subprocess.run(f"ln -s ../input/{rdn_basename}/{obs_basename}.bin {obs_img_path}", shell=True)
+    subprocess.run(f"ln -s ../input/{rdn_basename}/{obs_basename}.hdr {obs_hdr_path}", shell=True)
 
     # sensor is NA-YYYYMMDD
     sensor = f"NA-{rdn_basename.split('_')[4][:8]}"
 
-    surface_json_path = os.path.join(sister_isofit_dir, "surface_model", "surface.json")
-    surface_model_path = f"input/surface.mat"
-    wavelengths_path = f"input/wavelengths.txt"
-
-    apply_oe_exe = f"{isofit_dir}/isofit/utils/apply_oe.py"
-
-    # Make output dir
-    if not os.path.exists("output"):
-        subprocess.run("mkdir output", shell=True)
-
     # Generate wavelengths file
+    wavelengths_path = f"work/wavelengths.txt"
+    print(f"Generating wavelengths from radiance header path at {rdn_hdr_path} to {wavelengths_path}")
     generate_wavelengths(rdn_hdr_path, wavelengths_path)
 
     # Copy surface model files to input folder and generate surface model
-    subprocess.run(f"cp {sister_isofit_dir}/surface_model/* input/", shell=True)
-    surface_model("input/surface.json")
+    print(f"Generating surface model using work/surface.json config")
+    subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/", shell=True)
+    surface_model_path = f"work/surface.mat"
+    # surface_model("work/surface.json")
 
     # Run isofit
+    apply_oe_exe = f"{isofit_dir}/isofit/utils/apply_oe.py"
     cmd = [
         "python",
         apply_oe_exe,
@@ -144,11 +148,12 @@ def main():
         f"--segmentation_size={run_config['inputs']['config']['segmentation_size']}",
         f"--log_file=output/{rfl_basename}.log"
     ]
-    print(" ".join(cmd))
+    print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
 
     # Generate metadata in .met.json file
     met_json_path = f"output/{rfl_basename}.met.json"
+    print(f"Generating metadata from runconfig to {met_json_path}")
     generate_metadata(run_config, met_json_path)
 
     # Rename outputs
@@ -156,6 +161,7 @@ def main():
 
     # Generate quicklook
     rfl_ql_path = f"output/{rfl_basename}.png"
+    print(f"Generating quicklook to {rfl_ql_path}")
     generate_quicklook(rfl_img_path, rfl_ql_path)
 
 
