@@ -17,7 +17,7 @@ import spectral.io.envi as envi
 from PIL import Image
 
 import hytools_lite as ht
-#from isofit.utils import surface_model
+from isofit.utils import surface_model
 
 
 def generate_wavelengths(rdn_hdr_path, output_path):
@@ -127,9 +127,11 @@ def main():
     print(f"Generating surface model using work/surface.json config")
     subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/", shell=True)
     surface_model_path = f"work/surface.mat"
-    # surface_model("work/surface.json")
+    surface_model("work/surface.json")
 
     # Run isofit
+    if not os.path.exists("output"):
+        subprocess.run("mkdir output", shell=True)
     apply_oe_exe = f"{isofit_dir}/isofit/utils/apply_oe.py"
     cmd = [
         "python",
@@ -143,8 +145,8 @@ def main():
         "--empirical_line=1",
         f"--emulator_base={os.environ.get('EMULATOR_DIR')}",
         f"--n_cores={run_config['inputs']['config']['n_cores']}",
-        "--wavelength_path=input/wavelengths.txt",
-        "--surface_path=input/surface.mat",
+        f"--wavelength_path={wavelengths_path}",
+        f"--surface_path={surface_model_path}",
         f"--segmentation_size={run_config['inputs']['config']['segmentation_size']}",
         f"--log_file=output/{rfl_basename}.log"
     ]
