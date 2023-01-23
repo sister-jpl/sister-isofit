@@ -42,6 +42,7 @@ def generate_metadata(run_config, output_path):
     metadata = run_config["metadata"]
     metadata["product"] = "RFL"
     metadata["processing_level"] = "L2A"
+    metadata["description"] = "Surface reflectance (0-1)"
     with open(output_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
@@ -60,7 +61,7 @@ def generate_quicklook(rfl_img_path, output_path):
         band2 = img.get_wave(850)
         band1 = img.get_wave(1660)
 
-    rgb =  np.stack([band1, band2, band3])
+    rgb = np.stack([band1, band2, band3])
     rgb[rgb == img.no_data] = np.nan
 
     rgb = np.moveaxis(rgb,0,-1).astype(float)
@@ -161,6 +162,11 @@ def main():
     print(f"Generating metadata from runconfig to {met_json_path}")
     generate_metadata(run_config, met_json_path)
 
+    # Generate quicklook
+    rfl_ql_path = f"output/{rfl_basename}.png"
+    print(f"Generating quicklook to {rfl_ql_path}")
+    generate_quicklook(f"work/output/{rdn_basename}_rfl", rfl_ql_path)
+
     # Move/rename outputs to output dir
     rfl_img_path = f"output/{rfl_basename}.bin"
     rfl_hdr_path = f"output/{rfl_basename}.hdr"
@@ -168,13 +174,8 @@ def main():
     unc_hdr_path = f"output/{rfl_basename}_UNC.hdr"
     subprocess.run(f"mv work/output/{rdn_basename}_rfl {rfl_img_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_rfl.hdr {rfl_hdr_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_unc {unc_img_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_unc.hdr {unc_hdr_path}", shell=True)
-
-    # Generate quicklook
-    rfl_ql_path = f"output/{rfl_basename}.png"
-    print(f"Generating quicklook to {rfl_ql_path}")
-    generate_quicklook(rfl_img_path, rfl_ql_path)
+    subprocess.run(f"mv work/output/{rdn_basename}_uncert {unc_img_path}", shell=True)
+    subprocess.run(f"mv work/output/{rdn_basename}_uncert.hdr {unc_hdr_path}", shell=True)
 
 
 if __name__ == "__main__":
