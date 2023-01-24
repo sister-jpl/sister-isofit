@@ -42,14 +42,14 @@ def generate_metadata(run_config, rfl_met_json_path, unc_met_json_path):
     metadata = run_config["metadata"]
     metadata["product"] = "RFL"
     metadata["processing_level"] = "L2A"
-    metadata["description"] = "Surface reflectance (0-1)"
+    metadata["description"] = "Surface reflectance (unitless)"
     with open(rfl_met_json_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
     # Now for uncertainty .met.json file
     metadata["product"] = "RFL_UNC"
     metadata["processing_level"] = "L2A"
-    metadata["description"] = "Surface reflectance Uncertainties (0-1)"
+    metadata["description"] = "Surface reflectance uncertainties (unitless)"
     with open(unc_met_json_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
