@@ -37,13 +37,20 @@ def generate_wavelengths(rdn_hdr_path, output_path):
     np.savetxt(output_path, np.array(wl_arr, dtype=np.float32))
 
 
-def generate_metadata(run_config, output_path):
-    # Create .met.json file from runconfig
+def generate_metadata(run_config, rfl_met_json_path, unc_met_json_path):
+    # Create .met.json file from runconfig for reflectance
     metadata = run_config["metadata"]
     metadata["product"] = "RFL"
     metadata["processing_level"] = "L2A"
     metadata["description"] = "Surface reflectance (0-1)"
-    with open(output_path, "w") as f:
+    with open(rfl_met_json_path, "w") as f:
+        json.dump(metadata, f, indent=4)
+
+    # Now for uncertainty .met.json file
+    metadata["product"] = "RFL_UNC"
+    metadata["processing_level"] = "L2A"
+    metadata["description"] = "Surface reflectance Uncertainties (0-1)"
+    with open(unc_met_json_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
 
@@ -97,7 +104,11 @@ def main():
     sister_isofit_dir = os.path.abspath(os.path.dirname(__file__))
     isofit_dir = os.path.join(os.path.dirname(sister_isofit_dir), "isofit")
 
-    rdn_basename = os.path.basename(run_config["inputs"]["file"][0]["l1_granule"])
+    rdn_basename = None
+    for file in run_config["inputs"]["file"]:
+        if "radiance_dataset" in file:
+            rdn_basename = os.path.basename(file["radiance_dataset"])
+
     loc_basename = f"{rdn_basename}_LOC"
     obs_basename = f"{rdn_basename}_OBS"
     rfl_basename = rdn_basename.replace("L1B_RDN", "L2A_RFL")
@@ -111,10 +122,10 @@ def main():
     # Copy the input files into the work directory (don't use .bin)
     subprocess.run(f"cp input/{rdn_basename}/{rdn_basename}.bin {rdn_img_path}", shell=True)
     subprocess.run(f"cp input/{rdn_basename}/{rdn_basename}.hdr {rdn_hdr_path}", shell=True)
-    subprocess.run(f"cp input/{rdn_basename}/{loc_basename}.bin {loc_img_path}", shell=True)
-    subprocess.run(f"cp input/{rdn_basename}/{loc_basename}.hdr {loc_hdr_path}", shell=True)
-    subprocess.run(f"cp input/{rdn_basename}/{obs_basename}.bin {obs_img_path}", shell=True)
-    subprocess.run(f"cp input/{rdn_basename}/{obs_basename}.hdr {obs_hdr_path}", shell=True)
+    subprocess.run(f"cp input/{loc_basename}/{loc_basename}.bin {loc_img_path}", shell=True)
+    subprocess.run(f"cp input/{loc_basename}/{loc_basename}.hdr {loc_hdr_path}", shell=True)
+    subprocess.run(f"cp input/{obs_basename}/{obs_basename}.bin {obs_img_path}", shell=True)
+    subprocess.run(f"cp input/{obs_basename}/{obs_basename}.hdr {obs_hdr_path}", shell=True)
 
     # sensor is NA-YYYYMMDD
     sensor = f"NA-{rdn_basename.split('_')[4][:8]}"
@@ -132,7 +143,7 @@ def main():
 
     # Run isofit
     apply_oe_exe = f"{isofit_dir}/isofit/utils/apply_oe.py"
-    log_path = f"work/{rfl_basename}.log"
+    log_basename = f"{rfl_basename}.log"
     cmd = [
         "python",
         apply_oe_exe,
@@ -148,7 +159,7 @@ def main():
         f"--wavelength_path={wavelengths_path}",
         f"--surface_path={surface_model_path}",
         f"--segmentation_size={run_config['inputs']['config']['segmentation_size']}",
-        f"--log_file={log_path}"
+        f"--log_file=work/{log_basename}"
     ]
     print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
@@ -157,10 +168,11 @@ def main():
     if not os.path.exists("output"):
         subprocess.run("mkdir output", shell=True)
 
-    # Generate metadata in .met.json file
-    met_json_path = f"output/{rfl_basename}.met.json"
-    print(f"Generating metadata from runconfig to {met_json_path}")
-    generate_metadata(run_config, met_json_path)
+    # Generate metadata in .met.json file for each product type
+    rfl_met_json_path = f"output/{rfl_basename}.met.json"
+    unc_met_json_path = f"output/{rfl_basename}_UNC.met.json"
+    print(f"Generating metadata from runconfig to {rfl_met_json_path} and {unc_met_json_path}")
+    generate_metadata(run_config, rfl_met_json_path, unc_met_json_path)
 
     # Generate quicklook
     rfl_ql_path = f"output/{rfl_basename}.png"
@@ -176,6 +188,7 @@ def main():
     subprocess.run(f"mv work/output/{rdn_basename}_rfl.hdr {rfl_hdr_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert {unc_img_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert.hdr {unc_hdr_path}", shell=True)
+    subprocess.run(f"mv work/{log_basename} output/{log_basename}", shell=True)
 
 
 if __name__ == "__main__":
