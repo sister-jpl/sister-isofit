@@ -188,7 +188,10 @@ def main():
     subprocess.run(f"mv work/output/{rdn_basename}_rfl.hdr {rfl_hdr_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert {unc_img_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert.hdr {unc_hdr_path}", shell=True)
+
+    # Also move log file and runconfig
     subprocess.run(f"mv work/{log_basename} output/{log_basename}", shell=True)
+    subprocess.run(f"mv runconfig.json output/{rfl_basename}.runconfig.json", shell=True)
 
 
 if __name__ == "__main__":

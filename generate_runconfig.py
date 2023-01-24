@@ -26,8 +26,12 @@ def main():
     run_config = {"inputs": inputs}
 
     # Add metadata to runconfig
-    dataset = os.path.basename(inputs["file"][0]["l1_granule"])
-    met_json_path = os.path.join("input", dataset, f"{dataset}.met.json")
+    rdn_basename = None
+    for file in run_config["inputs"]["file"]:
+        if "radiance_dataset" in file:
+            rdn_basename = os.path.basename(file["radiance_dataset"])
+
+    met_json_path = os.path.join("input", rdn_basename, f"{rdn_basename}.met.json")
     with open(met_json_path, "r") as f:
         metadata = json.load(f)
     run_config["metadata"] = metadata
