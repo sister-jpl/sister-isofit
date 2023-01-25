@@ -20,6 +20,14 @@ import hytools_lite as ht
 from isofit.utils import surface_model
 
 
+def get_rfl_basename(rdn_basename, crid):
+    # Replace product type
+    tmp_basename = rdn_basename.replace("L1B_RDN", "L2A_RFL")
+    # Split, remove old CRID, and add new one
+    tokens = tmp_basename.split("_")[:-1] + [crid]
+    return "_".join(tokens)
+
+
 def generate_wavelengths(rdn_hdr_path, output_path):
     # Read in header file and get list of wavelengths and fwhm
     hdr = envi.read_envi_header(rdn_hdr_path)
@@ -111,7 +119,7 @@ def main():
 
     loc_basename = f"{rdn_basename}_LOC"
     obs_basename = f"{rdn_basename}_OBS"
-    rfl_basename = rdn_basename.replace("L1B_RDN", "L2A_RFL")
+    rfl_basename = get_rfl_basename(rdn_basename, run_config["inputs"]["config"]["crid"])
     rdn_img_path = f"work/{rdn_basename}"
     rdn_hdr_path = f"work/{rdn_basename}.hdr"
     loc_img_path = f"work/{loc_basename}"
