@@ -67,7 +67,7 @@ where `(_ANCILLARY)` is optional and is used to identify ancillary products.
     
     maap = MAAP(maap_host="34.216.77.111")
     
-    algo_config_path = "sister-fractional-cover/algorithm_config.yaml"
+    algo_config_path = "sister-isofit/algorithm_config.yaml"
     response = maap.register_algorithm_from_yaml_file(file_path=algo_config_path)
     print(response.text)
 
