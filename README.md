@@ -2,7 +2,7 @@
 
 ## Description
 
-The sister-isofit repository is a wrapper for the L2A reflectance repository called 
+The sister-isofit repository is a wrapper for the L2A atmospheric correction repository called 
 [ISOFIT](https://github.com/isofit/isofit).  ISOFIT contains a set of routines and utilities for fitting surface, 
 atmosphere and instrument models to imaging spectrometer data.
 
@@ -11,7 +11,7 @@ atmosphere and instrument models to imaging spectrometer data.
 This repository is built to run on SISTER (Space-based Imaging Spectroscopy and Thermal pathfindER), a data 
 processing back-end that allows for the registration of algorithms as executable containers and execution of those 
 containers at scale.  The manifest file that configures this repository for registration and describes all of its 
-necessary dependencies is called `.imgspec/algorithm_config.yaml`.  In this file you will find:
+necessary dependencies is called `algorithm_config.yaml`.  In this file you will find:
 
 * The repository URL and version to register
 * The base Docker image which this repository gets installed into, and a reference to its Dockerfile
@@ -25,54 +25,41 @@ register algorithms and submit jobs.  maap-py can be obtained by running:
 
     git clone --single-branch --branch system-test-8 https://gitlab.com/geospec/maap-py.git
 
-
 ## PGE Arguments
 
 The sister-isofit PGE takes the following arguments:
 
 
-| Argument                             | Type        | Description                                      | Default |
-|--------------------------------------|-------------|--------------------------------------------------|---------|
-| l1_granule                           | file        | URL to the L1 file                               | -       |
-| surface_reflectance_spectra          | posititonal | Surface model input spectra (other)              | -       |
-| vegetation_reflectance_spectra       | posititonal | Surface model input spectra (vegetation)         | -       |
-| water_reflectance_spectra            | posititonal | Surface model input spectra (water)              | -       |
-| snow_and_liquids_reflectance_spectra | posititonal | Surface model input spectra (snow)               | -       |
-| segmentation_size                    | posititonal | Size of segments to construct for empirical line | 50      |
-| n_cores                              | posititonal | Number of cores for parallelization              | 32      |
-
+| Argument            | Type   | Description                                      | Default |
+|---------------------|--------|--------------------------------------------------|---------|
+| radiance_dataset    | file   | S3 URL to the radiance dataset folder            | -       |
+| location_dataset    | file   | S3 URL to the location dataset folder            | -       |
+| observation_dataset | file   | S3 URL to the radiance dataset folder            | -       |
+| segmentation_size   | config | Size of segments to construct for empirical line | 50      |
+| n_cores             | config | Number of cores for parallelization              | 32      |
+| crid                | config | Composite Release ID to tag file names           | 000     |
+| _force_ingest       | config | Flag that allows overwriting existing files      | True    |
 
 ## Outputs
 
-The L2A reflectance correction PGE outputs ENVI formatted binary data cubes along with associated header files. The 
+The L2A atmospheric correction PGE outputs ENVI formatted binary data cubes along with associated header files. The 
 outputs of the PGE use the following naming convention:
 
-    SISTER_INSTRUMENT_YYYYMMDDTHHMMSS_L2A_SUBPRODUCT_VERSION
+    SISTER_INSTRUMENT_LEVEL_PRODUCT_YYYYMMDDTHHMMSS_CRID(_ANCILLARY).EXTENSION
 
-| Subproduct | Description                                | Units          | Example filename                                  |
-|------------|--------------------------------------------|----------------|---------------------------------------------------|
-| RFL        | ENVI reflectance binary file               | Unitless (0-1) | SISTER_AVNG\_20220502T180901\_L2A\_RFL\_001       |
-|            | ENVI reflectance header file               | -              | SISTER_AVNG\_20220502T180901\_L2A\_RFL\_001.hdr   |
-| UNC        | ENVI reflectance uncertainties binary file | Unitless (0-1) | SISTER_AVNG\_20220502T180901\_L2A\_UNC\_001       |
-|            | ENVI reflectance uncertainties header file | -              | SISTER_AVNG\_20220502T180901\_L2A\_UNC\_001.hdr   |
-| STATE      | ENVI state vector binary file              | Various        | SISTER_AVNG\_20220502T180901\_L2A\_STATE\_001     |
-|            | ENVI state vector header file              | -              | SISTER_AVNG\_20220502T180901\_L2A\_STATE\_001.hdr |
-| SEG        | ENVI super-pixel segments binary file      | Unitless       | SISTER_AVNG\_20220502T180901\_L2A\_SEG\_001       |
-|            | ENVI super-pixel segments header file      | -              | SISTER_AVNG\_20220502T180901\_L2A\_SEG\_001.hdr   |
+where `(_ANCILLARY)` is optional and is used to identify ancillary products.
 
-
-All outputs of the L2A reflectance correction are compressed into a single tar.gz file using the following naming structure:
-
-    SISTER_INSTRUMENT_YYYYMMDDTHHMMSS_L2A_RFL_VERSION.tar.gz
-
-example:
-
-    SISTER_AVNG_20220502T180901_L2A_CORFL_001.tar.gz
-
-In addition, a log file and a quicklook image are generated for each product with the naming conventions:
-
- 	SISTER_INSTRUMENT_YYYYMMDDTHHMMSS_L2A_RFL_VERSION.log 	
-    SISTER_INSTRUMENT_YYYYMMDDTHHMMSS_L2A_RFL_VERSION.png
+| Product                                    | Format, Units        | Example filename                                       |
+|--------------------------------------------|----------------------|--------------------------------------------------------|
+| Reflectance binary file                    | ENVI, Unitless (0-1) | SISTER_AVNG_L2A_RFL_20220814T183137_000.bin            |
+| Reflectance header file                    | ASCII text           | SISTER_AVNG_L2A_RFL_20220814T183137_000.hdr            |
+| Reflectance metadata file                  | JSON                 | SISTER_AVNG_L2A_RFL_20220814T183137_000.met.json       |
+| Reflectance browse image                   | PNG                  | SISTER_AVNG_L2A_RFL_20220814T183137_000.png            |
+| Reflectance uncertainty binary file        | ENVI, Unitless (0-1) | SISTER_AVNG_L2A_RFL_20220814T183137_000_UNC.bin        |
+| Reflectance uncertainty header file        | Text                 | SISTER_AVNG_L2A_RFL_20220814T183137_000_UNC.hdr        |
+| Reflectance uncertainty metadata file      | JSON                 | SISTER_AVNG_L2A_RFL_20220814T183137_000_UNC.met.json   |
+| PGE log file                               | Text                 | SISTER_AVNG_L2A_RFL_20220814T183137_000.log            |
+| PGE run config                             | JSON                 | SISTER_AVNG_L2A_RFL_20220814T183137_000.runconfig.json |
 
 ## Registering the Repository with SISTER
 
@@ -80,54 +67,8 @@ In addition, a log file and a quicklook image are generated for each product wit
     
     maap = MAAP(maap_host="34.216.77.111")
     
-    # Set up the configuration for the algorithm to register
-    isofit_alg = {
-        "script_command": "sister-isofit/.imgspec/imgspec_run.sh",
-        "repo_url": "https://gitlab.com/geospec/sister-isofit.git",
-        "algorithm_name": "sister-isofit",
-        "code_version": "1.0.0",
-        "algorithm_description": "The SISTER wrapper for ISOFIT. ISOFIT (Imaging Spectrometer Optimal FITting) contains a set of routines and utilities for fitting surface, atmosphere and instrument models to imaging spectrometer data.",
-        "environment_name":"ubuntu",
-        "disk_space": "70GB",
-        "queue": "sister-job_worker-32gb",
-        "build_command": "sister-isofit/.imgspec/install.sh",
-        "docker_container_url": "localhost:5050/base_images/isofit:1.0",
-        "algorithm_params": [
-            {
-                "field": "l1_granule",
-                "type": "file"
-            },
-            {
-                "field": "surface_reflectance_spectra",
-                "type": "positional"
-            },
-            {
-                "field": "vegetation_reflectance_spectra",
-                "type": "positional"
-            },
-            {
-                "field": "water_reflectance_spectra",
-                "type": "positional"
-            },
-            {
-                "field": "snow_and_liquids_reflectance_spectra",
-                "type": "positional"
-            },
-            {
-                "field": "segmentation_size",
-                "type": "positional",
-                "default": "50"
-            },
-            {
-                "field": "n_cores",
-                "type": "positional",
-                "default": "32"
-            }
-        ]
-    }
-    
-    # Make the request and print the results
-    response = maap.registerAlgorithm(isofit_alg)
+    algo_config_path = "sister-fractional-cover/algorithm_config.yaml"
+    response = maap.register_algorithm_from_yaml_file(file_path=algo_config_path)
     print(response.text)
 
 ## Submitting a Job on SISTER
@@ -137,18 +78,17 @@ In addition, a log file and a quicklook image are generated for each product wit
     maap = MAAP(maap_host="34.216.77.111")
     
     isofit_job_response = maap.submitJob(
-        algo_id="sister-isofit_ubuntu",
+        algo_id="sister-isofit",
         version="1.0.0",
-        l1_granule="http://sister-ops-workspace.s3.us-west-2.amazonaws.com/null/dps_output/sister-preprocess_ubuntu/sister-dev/2022/10/05/15/01/31/456920/SISTER_DESIS_20220606t114731_L1B_RDN_000.tar.gz",
-        surface_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-surface-reflectance-spectra/export",
-        vegetation_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-vegetation-reflectance-spectra/export",
-        water_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-water-reflectance-spectra/export",
-        snow_and_liquids_reflectance_spectra="https://ecosis.org/api/package/emit-manually-adjusted-snow-and-liquids-reflectance-spectra/export",
+        radiance_dataset="s3://s3.us-west-2.amazonaws.com:80/sister-ops-workspace/LOM/PRODUCTS/AVNG/L1B_RDN/2022/08/14/SISTER_AVNG_L1B_RDN_20220814T183137_000",
+        location_dataset="s3://s3.us-west-2.amazonaws.com:80/sister-ops-workspace/LOM/PRODUCTS/AVNG/L1B_RDN/2022/08/14/SISTER_AVNG_L1B_RDN_20220814T183137_000_LOC",
+        observation_dataset="s3://s3.us-west-2.amazonaws.com:80/sister-ops-workspace/LOM/PRODUCTS/AVNG/L1B_RDN/2022/08/14/SISTER_AVNG_L1B_RDN_20220814T183137_000_OBS",
         segmentation_size=50,
         n_cores=32,
+        crid="000",
         publish_to_cmr=False,
         cmr_metadata={},
         queue="sister-job_worker-32gb",
-        identifier="SISTER_DESIS_20220606t114731_L1B_RDN_000")
+        identifier="SISTER_AVNG_L2A_RFL_20220814T183137_000")
     
     print(isofit_job_response.id, isofit_job_response.status)
