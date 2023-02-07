@@ -24,7 +24,7 @@ def get_rfl_basename(rdn_basename, crid):
     # Replace product type
     tmp_basename = rdn_basename.replace("L1B_RDN", "L2A_RFL")
     # Split, remove old CRID, and add new one
-    tokens = tmp_basename.split("_")[:-1] + [crid]
+    tokens = tmp_basename.split("_")[:-1] + [str(crid)]
     return "_".join(tokens)
 
 
