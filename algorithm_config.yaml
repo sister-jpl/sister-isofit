@@ -32,5 +32,3 @@ inputs:
       default: "32"
     - name: crid
       default: "000"
-    - name: _force_ingest
-      default: "True"

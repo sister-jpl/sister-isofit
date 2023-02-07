@@ -38,7 +38,6 @@ The sister-isofit PGE takes the following arguments:
 | segmentation_size   | config | Size of segments to construct for empirical line | 50      |
 | n_cores             | config | Number of cores for parallelization              | 32      |
 | crid                | config | Composite Release ID to tag file names           | 000     |
-| _force_ingest       | config | Flag that allows overwriting existing files      | True    |
 
 ## Outputs
 
