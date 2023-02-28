@@ -90,6 +90,17 @@ def generate_quicklook(rfl_img_path, output_path):
     im.save(output_path)
 
 
+def update_header_descriptions(rfl_hdr_path, unc_hdr_path):
+    # Update reflectance header
+    hdr = envi.read_envi_header(rfl_hdr_path)
+    hdr["description"] = "Surface reflectance (unitless)"
+    envi.write_envi_header(rfl_hdr_path, hdr)
+    # Update uncertainty header
+    hdr = envi.read_envi_header(unc_hdr_path)
+    hdr["description"] = "Surface reflectance uncertainties (unitless)"
+    envi.write_envi_header(unc_hdr_path, hdr)
+
+
 def main():
     """
         This function takes as input the path to an inputs.json file and exports a run config json
@@ -196,6 +207,9 @@ def main():
     subprocess.run(f"mv work/output/{rdn_basename}_rfl.hdr {rfl_hdr_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert {unc_img_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert.hdr {unc_hdr_path}", shell=True)
+
+    # Update descriptions in reflectance and uncertainty ENVI headers
+    update_header_descriptions(rfl_hdr_path, unc_hdr_path)
 
     # Also move log file and runconfig
     subprocess.run(f"mv work/{log_basename} output/{log_basename}", shell=True)
