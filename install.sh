@@ -1,14 +1,15 @@
 pge_dir=$(cd "$(dirname "$0")" ; pwd -P)
 app_dir=$(dirname ${pge_dir})
 
-sudo apt update -y
-sudo apt install -y build-essential gfortran awscli
-sudo apt clean
+#sudo apt update -y
+#sudo apt install -y build-essential gfortran awscli
+#sudo apt clean
 
 conda create -y --name isofit python=3.8
 source activate isofit
 conda install -y gdal
-#conda install -y -c conda-forge gfortran awscli
+conda install -y -c conda-forge gfortran awscli
+conda install -y -c anaconda make
 
 cd $app_dir
 
