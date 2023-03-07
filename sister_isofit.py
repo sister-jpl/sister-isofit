@@ -172,13 +172,14 @@ def main():
         "work",
         sensor,
         "--presolve=1",
-        "--empirical_line=1",
-        f"--emulator_base={os.environ.get('EMULATOR_DIR')}",
+        "--analytical_line=1",
+        f"--emulator_base={os.environ.get('EMULATOR_PATH')}",
         f"--n_cores={run_config['inputs']['config']['n_cores']}",
         f"--wavelength_path={wavelengths_path}",
         f"--surface_path={surface_model_path}",
         f"--segmentation_size={run_config['inputs']['config']['segmentation_size']}",
-        f"--log_file=work/{log_basename}"
+        f"--log_file=work/{log_basename}",
+        "-pressure_elevation"
     ]
     print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
