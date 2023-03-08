@@ -26,7 +26,7 @@ cd $app_dir
 #Download emulator
 aws s3 cp s3://sister-ops-registry/packages/sRTMnet_v120.h5 .
 aws s3 cp s3://sister-ops-registry/packages/sRTMnet_v120_aux.npz .
-EMULATOR_PATH=${app_dir}/sRTMnet_v120.h5
+export EMULATOR_PATH=${app_dir}/sRTMnet_v120.h5
 
 git clone https://github.com/isofit/isofit.git -b v2.9.8
 
