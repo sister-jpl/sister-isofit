@@ -179,7 +179,7 @@ def main():
         f"--surface_path={surface_model_path}",
         f"--segmentation_size={run_config['inputs']['config']['segmentation_size']}",
         f"--log_file=work/{log_basename}",
-        "-pressure_elevation"
+        "--pressure_elevation"
     ]
     print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
