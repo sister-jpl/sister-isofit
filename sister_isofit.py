@@ -45,20 +45,14 @@ def generate_wavelengths(rdn_hdr_path, output_path):
     np.savetxt(output_path, np.array(wl_arr, dtype=np.float32))
 
 
-def generate_metadata(run_config, rfl_met_json_path, unc_met_json_path):
-    # Create .met.json file from runconfig for reflectance
-    metadata = run_config["metadata"]
-    metadata["product"] = "RFL"
-    metadata["processing_level"] = "L2A"
-    metadata["description"] = "Surface reflectance (unitless)"
-    with open(rfl_met_json_path, "w") as f:
-        json.dump(metadata, f, indent=4)
+def generate_metadata(run_config, json_path, product,processing_level,description):
 
-    # Now for uncertainty .met.json file
-    metadata["product"] = "RFL_UNC"
-    metadata["processing_level"] = "L2A"
-    metadata["description"] = "Surface reflectance uncertainties (unitless)"
-    with open(unc_met_json_path, "w") as f:
+    metadata = run_config["metadata"]
+    metadata["product"] = product
+    metadata["processing_level"] = processing_level
+    metadata["description"] = description
+
+    with open(json_path, "w") as f:
         json.dump(metadata, f, indent=4)
 
 
@@ -89,17 +83,10 @@ def generate_quicklook(rfl_img_path, output_path):
     im = Image.fromarray(rgb)
     im.save(output_path)
 
-
-def update_header_descriptions(rfl_hdr_path, unc_hdr_path):
-    # Update reflectance header
-    hdr = envi.read_envi_header(rfl_hdr_path)
-    hdr["description"] = "Surface reflectance (unitless)"
-    envi.write_envi_header(rfl_hdr_path, hdr)
-    # Update uncertainty header
-    hdr = envi.read_envi_header(unc_hdr_path)
-    hdr["description"] = "Surface reflectance uncertainties (unitless)"
-    envi.write_envi_header(unc_hdr_path, hdr)
-
+def update_header_descriptions(hdr_path, description):
+    hdr = envi.read_envi_header(hdr_path)
+    hdr["description"] = description
+    envi.write_envi_header(hdr_path, hdr)
 
 def main():
     """
@@ -184,6 +171,10 @@ def main():
         f"--log_file=work/{log_basename}",
         "--pressure_elevation"
     ]
+
+    if "EMIT" in rdn_img_path:
+        cmd.append('--channelized_uncertainty_path=/app/isofit/data/emit_osf_uncertainty.txt')
+
     print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
 
@@ -191,11 +182,19 @@ def main():
     if not os.path.exists("output"):
         subprocess.run("mkdir output", shell=True)
 
+    rfl_description ="Surface reflectance (unitless)"
+    unc_description ="Surface reflectance uncertainties (unitless)")
+    atm_description ="Atmospheric state AOT550, Pressure Elevation, H2O"
+
     # Generate metadata in .met.json file for each product type
     rfl_met_json_path = f"output/{rfl_basename}.met.json"
     unc_met_json_path = f"output/{rfl_basename}_UNC.met.json"
-    print(f"Generating metadata from runconfig to {rfl_met_json_path} and {unc_met_json_path}")
-    generate_metadata(run_config, rfl_met_json_path, unc_met_json_path)
+    atm_met_json_path = f"output/{rfl_basename}_ATM.met.json"
+
+    print(f"Generating metadata files from runconfig")
+    generate_metadata(run_config, rfl_met_json_path, "RFL","L2A",rfl_description)
+    generate_metadata(run_config, unc_met_json_path, "RFL_UNC","L2A",unc_description)
+    generate_metadata(run_config, atm_met_json_path, "RFL_ATM","L2A",atm_description)
 
     # Generate quicklook
     rfl_ql_path = f"output/{rfl_basename}.png"
@@ -207,13 +206,20 @@ def main():
     rfl_hdr_path = f"output/{rfl_basename}.hdr"
     unc_img_path = f"output/{rfl_basename}_UNC.bin"
     unc_hdr_path = f"output/{rfl_basename}_UNC.hdr"
+    atm_img_path = f"output/{rfl_basename}_ATM.bin"
+    atm_hdr_path = f"output/{rfl_basename}_ATM.hdr"
+
     subprocess.run(f"mv work/output/{rdn_basename}_rfl {rfl_img_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_rfl.hdr {rfl_hdr_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert {unc_img_path}", shell=True)
     subprocess.run(f"mv work/output/{rdn_basename}_uncert.hdr {unc_hdr_path}", shell=True)
+    subprocess.run(f"mv work/output/{rdn_basename}_atm_interp {atm_img_path}", shell=True)
+    subprocess.run(f"mv work/output/{rdn_basename}_atm_interp.hdr {atm_hdr_path}", shell=True)
 
-    # Update descriptions in reflectance and uncertainty ENVI headers
-    update_header_descriptions(rfl_hdr_path, unc_hdr_path)
+    # Update descriptions in ENVI headers
+    update_header_descriptions(rfl_hdr_path, rfl_description)
+    update_header_descriptions(unc_hdr_path, unc_description)
+    update_header_descriptions(atm_hdr_path, atm_description)
 
     # Also move log file and runconfig
     subprocess.run(f"mv work/{log_basename} output/{log_basename}", shell=True)
