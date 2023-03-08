@@ -183,7 +183,7 @@ def main():
         subprocess.run("mkdir output", shell=True)
 
     rfl_description ="Surface reflectance (unitless)"
-    unc_description ="Surface reflectance uncertainties (unitless)")
+    unc_description ="Surface reflectance uncertainties (unitless)"
     atm_description ="Atmospheric state AOT550, Pressure Elevation, H2O"
 
     # Generate metadata in .met.json file for each product type
