@@ -160,6 +160,9 @@ def main():
     surface_model_path = f"work/surface.mat"
     surface_model("work/surface.json")
 
+    os.environ['SIXS_DIR'] = "/app/6s"
+    os.environ['EMULATOR_PATH'] = '/app/sRTMnet_v120.h5'
+
     # Run isofit
     apply_oe_exe = f"{isofit_dir}/isofit/utils/apply_oe.py"
     log_basename = f"{rfl_basename}.log"
@@ -173,7 +176,7 @@ def main():
         sensor,
         "--presolve=1",
         "--analytical_line=1",
-        f"--emulator_base=/app/sRTMnet_v120.h5",
+        f"--emulator_base={os.environ.get('EMULATOR_PATH')}",
         f"--n_cores={run_config['inputs']['config']['n_cores']}",
         f"--wavelength_path={wavelengths_path}",
         f"--surface_path={surface_model_path}",
