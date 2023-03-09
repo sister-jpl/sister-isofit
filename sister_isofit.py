@@ -173,7 +173,7 @@ def main():
 
     if "EMIT" in rdn_img_path:
         cmd.append('--channelized_uncertainty_path=/app/isofit/data/emit_osf_uncertainty.txt')
-        cmd.append('--model_discrepancy_path=/app/isofit/data/emit_model_discrepancy.mat)
+        cmd.append('--model_discrepancy_path=/app/isofit/data/emit_model_discrepancy.mat')
 
     print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
