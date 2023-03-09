@@ -161,7 +161,7 @@ def main():
 
     # Copy surface model files to input folder and generate surface model
     print("Generating surface model using work/surface.json config")
-    subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/")
+    subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/", shell=True)
     surface_model_path = "work/surface.mat"
     surface_model("work/surface.json")
 
