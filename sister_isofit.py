@@ -10,6 +10,7 @@ import json
 import os
 import subprocess
 import sys
+import shutil
 
 import numpy as np
 import spectral.io.envi as envi
@@ -104,7 +105,7 @@ def main():
     # Make work dir
     print("Making work directory and symlinking input files")
     if not os.path.exists("work"):
-        subprocess.run("mkdir work", shell=True)
+        os.mkdir("work")
 
     # Define paths and variables
     sister_isofit_dir = os.path.abspath(os.path.dirname(__file__))
@@ -118,33 +119,50 @@ def main():
     loc_basename = f"{rdn_basename}_LOC"
     obs_basename = f"{rdn_basename}_OBS"
     rfl_basename = get_rfl_basename(rdn_basename, run_config["inputs"]["config"]["crid"])
-    rdn_img_path = f"work/{rdn_basename}"
-    rdn_hdr_path = f"work/{rdn_basename}.hdr"
-    loc_img_path = f"work/{loc_basename}"
-    loc_hdr_path = f"work/{loc_basename}.hdr"
-    obs_img_path = f"work/{obs_basename}"
-    obs_hdr_path = f"work/{obs_basename}.hdr"
+
+    instrument = rfl_basename.split('_')[1]
+
+    if instrument == "EMIT":
+        sensor = 'emit'
+        temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
+    elif instrument == "AVNG":
+        sensor = 'ang'
+        temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
+    elif instrument == "AVCL":
+        sensor = 'avcl'
+        temp_basename = f'f{rdn_basename.split("_")[4][2:8]}t00p00r00'
+    else:
+        sensor = f"NA-{rdn_basename.split('_')[4][:8]}"
+        temp_basename = rdn_basename
+
+    #Temporary input filenames without .bin extension
+    rdn_img_path = f"work/{temp_basename}"
+    rdn_hdr_path = f"work/{temp_basename}.hdr"
+    loc_img_path = f"work/{temp_basename}_LOC"
+    loc_hdr_path = f"work/{temp_basename}_LOC.hdr"
+    obs_img_path = f"work/{temp_basename}_OBS"
+    obs_hdr_path = f"work/{temp_basename}_OBS.hdr"
 
     # Copy the input files into the work directory (don't use .bin)
-    subprocess.run(f"cp input/{rdn_basename}/{rdn_basename}.bin {rdn_img_path}", shell=True)
-    subprocess.run(f"cp input/{rdn_basename}/{rdn_basename}.hdr {rdn_hdr_path}", shell=True)
-    subprocess.run(f"cp input/{loc_basename}/{loc_basename}.bin {loc_img_path}", shell=True)
-    subprocess.run(f"cp input/{loc_basename}/{loc_basename}.hdr {loc_hdr_path}", shell=True)
-    subprocess.run(f"cp input/{obs_basename}/{obs_basename}.bin {obs_img_path}", shell=True)
-    subprocess.run(f"cp input/{obs_basename}/{obs_basename}.hdr {obs_hdr_path}", shell=True)
+    shutil.copyfile(f"input/{rdn_basename}/{rdn_basename}.bin" ,rdn_img_path)
+    shutil.copyfile(f"input/{rdn_basename}/{rdn_basename}.hdr" ,rdn_hdr_path)
+    shutil.copyfile(f"input/{loc_basename}/{loc_basename}.bin" ,loc_img_path)
+    shutil.copyfile(f"input/{loc_basename}/{loc_basename}.hdr" ,loc_hdr_path)
+    shutil.copyfile(f"input/{obs_basename}/{obs_basename}.bin" ,obs_img_path)
+    shutil.copyfile(f"input/{obs_basename}/{obs_basename}.hdr" ,obs_hdr_path)
 
-    # sensor is NA-YYYYMMDD
-    sensor = f"NA-{rdn_basename.split('_')[4][:8]}"
+    #Update radiance basename
+    rdn_basename = os.path.basename(rdn_img_path)
 
     # Generate wavelengths file
-    wavelengths_path = f"work/wavelengths.txt"
+    wavelengths_path = "work/wavelengths.txt"
     print(f"Generating wavelengths from radiance header path at {rdn_hdr_path} to {wavelengths_path}")
     generate_wavelengths(rdn_hdr_path, wavelengths_path)
 
     # Copy surface model files to input folder and generate surface model
-    print(f"Generating surface model using work/surface.json config")
-    subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/", shell=True)
-    surface_model_path = f"work/surface.mat"
+    print("Generating surface model using work/surface.json config")
+    subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/")
+    surface_model_path = "work/surface.mat"
     surface_model("work/surface.json")
 
     os.environ['SIXS_DIR'] = "/app/6s"
@@ -162,7 +180,7 @@ def main():
         sensor,
         "--presolve=1",
         "--analytical_line=1",
-        f"--emulator_base=/app/sRTMnet_v120.h5",
+        "--emulator_base=/app/sRTMnet_v120.h5",
         f"--n_cores={run_config['inputs']['config']['n_cores']}",
         f"--wavelength_path={wavelengths_path}",
         f"--surface_path={surface_model_path}",
@@ -171,16 +189,12 @@ def main():
         "--pressure_elevation"
     ]
 
-    if "EMIT" in rdn_img_path:
-        cmd.append('--channelized_uncertainty_path=/app/isofit/data/emit_osf_uncertainty.txt')
-        cmd.append('--model_discrepancy_path=/app/isofit/data/emit_model_discrepancy.mat')
-
     print("Running apply_oe command: " + " ".join(cmd))
     subprocess.run(" ".join(cmd), shell=True)
 
     # Make output dir
     if not os.path.exists("output"):
-        subprocess.run("mkdir output", shell=True)
+        os.mkdir("output")
 
     rfl_description ="Surface reflectance (unitless)"
     unc_description ="Surface reflectance uncertainties (unitless)"
@@ -191,7 +205,7 @@ def main():
     unc_met_json_path = f"output/{rfl_basename}_UNC.met.json"
     atm_met_json_path = f"output/{rfl_basename}_ATM.met.json"
 
-    print(f"Generating metadata files from runconfig")
+    print("Generating metadata files from runconfig")
     generate_metadata(run_config, rfl_met_json_path, "RFL","L2A",rfl_description)
     generate_metadata(run_config, unc_met_json_path, "RFL_UNC","L2A",unc_description)
     generate_metadata(run_config, atm_met_json_path, "RFL_ATM","L2A",atm_description)
@@ -209,12 +223,12 @@ def main():
     atm_img_path = f"output/{rfl_basename}_ATM.bin"
     atm_hdr_path = f"output/{rfl_basename}_ATM.hdr"
 
-    subprocess.run(f"mv work/output/{rdn_basename}_rfl {rfl_img_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_rfl.hdr {rfl_hdr_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_uncert {unc_img_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_uncert.hdr {unc_hdr_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_atm_interp {atm_img_path}", shell=True)
-    subprocess.run(f"mv work/output/{rdn_basename}_atm_interp.hdr {atm_hdr_path}", shell=True)
+    shutil.copyfile(f"work/output/{rdn_basename}_rfl", rfl_img_path)
+    shutil.copyfile(f"work/output/{rdn_basename}_rfl.hdr", rfl_hdr_path)
+    shutil.copyfile(f"work/output/{rdn_basename}_uncert", unc_img_path)
+    shutil.copyfile(f"work/output/{rdn_basename}_uncert.hdr", unc_hdr_path)
+    shutil.copyfile(f"work/output/{rdn_basename}_atm_interp", atm_img_path)
+    shutil.copyfile(f"work/output/{rdn_basename}_atm_interp.hdr", atm_hdr_path)
 
     # Update descriptions in ENVI headers
     update_header_descriptions(rfl_hdr_path, rfl_description)
@@ -222,8 +236,8 @@ def main():
     update_header_descriptions(atm_hdr_path, atm_description)
 
     # Also move log file and runconfig
-    subprocess.run(f"mv work/{log_basename} output/{log_basename}", shell=True)
-    subprocess.run(f"mv runconfig.json output/{rfl_basename}.runconfig.json", shell=True)
+    shutil.copyfile(f"work/{log_basename}", f"output/{log_basename}")
+    shutil.copyfile("runconfig.json", f"output/{rfl_basename}.runconfig.json")
 
 
 if __name__ == "__main__":
