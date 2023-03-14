@@ -6,6 +6,7 @@ Space-based Imaging Spectroscopy and Thermal PathfindER
 Author: Winston Olson-Duvall
 """
 
+import glob
 import json
 import os
 import subprocess
@@ -13,7 +14,7 @@ import sys
 import shutil
 
 import numpy as np
-import spectral.io.envi as envi
+from spectral.io import envi
 
 from PIL import Image
 
@@ -46,16 +47,14 @@ def generate_wavelengths(rdn_hdr_path, output_path):
     np.savetxt(output_path, np.array(wl_arr, dtype=np.float32))
 
 
-def generate_metadata(run_config, json_path, product,processing_level,description):
+def generate_metadata(run_config,json_path,new_metadata):
 
-    metadata = run_config["metadata"]
-    metadata["product"] = product
-    metadata["processing_level"] = processing_level
-    metadata["description"] = description
+    metadata= run_config['metadata']
+    for key,value in new_metadata.items():
+        metadata[key] = value
 
-    with open(json_path, "w") as f:
-        json.dump(metadata, f, indent=4)
-
+    with open(json_path, 'w') as out_obj:
+        json.dump(metadata,out_obj,indent=3)
 
 def generate_quicklook(rfl_img_path, output_path):
     # Generate a quicklook browse image
@@ -122,9 +121,12 @@ def main():
 
     instrument = rfl_basename.split('_')[1]
 
+    surface_config = '"work/surface_20221001.json"'
+
     if instrument == "EMIT":
         sensor = 'emit'
         temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
+        surface_config = '"work/emit_surface_20221001.json"'
     elif instrument == "AVNG":
         sensor = 'ang'
         temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
@@ -163,7 +165,7 @@ def main():
     print("Generating surface model using work/surface.json config")
     subprocess.run(f"cp {sister_isofit_dir}/surface_model/* work/", shell=True)
     surface_model_path = "work/surface.mat"
-    surface_model("work/surface.json")
+    surface_model(surface_config)
 
     os.environ['SIXS_DIR'] = "/app/6s"
 
@@ -201,14 +203,32 @@ def main():
     atm_description ="Atmospheric state AOT550, Pressure Elevation, H2O"
 
     # Generate metadata in .met.json file for each product type
-    rfl_met_json_path = f"output/{rfl_basename}.met.json"
-    unc_met_json_path = f"output/{rfl_basename}_UNC.met.json"
-    atm_met_json_path = f"output/{rfl_basename}_ATM.met.json"
-
     print("Generating metadata files from runconfig")
-    generate_metadata(run_config, rfl_met_json_path, "RFL","L2A",rfl_description)
-    generate_metadata(run_config, unc_met_json_path, "RFL_UNC","L2A",unc_description)
-    generate_metadata(run_config, atm_met_json_path, "RFL_ATM","L2A",atm_description)
+
+    isofit_config_file = glob.glob("/work/config/*_modtran.json")[0]
+    print(f'ISOFIT config file: {isofit_config_file}')
+
+    with open(isofit_config_file, 'r') as in_obj:
+        isofit_config =json.load(in_obj)
+
+    generate_metadata(run_config,
+                      f"output/{rfl_basename}.met.json",
+                      {'product': 'RFL',
+                      'processing_level': 'L2A',
+                      'description' : rfl_description,
+                      'isofit_config': isofit_config})
+
+    generate_metadata(run_config,
+                      f"output/{rfl_basename}_UNC.met.json",
+                      {'product': 'RFL_UNC',
+                      'processing_level': 'L2A',
+                      'description' : unc_description})
+
+    generate_metadata(run_config,
+                      f"output/{rfl_basename}_ATM.met.json",
+                      {'product': 'RFL_ATM',
+                      'processing_level': 'L2A',
+                      'description' : atm_description})
 
     # Generate quicklook
     rfl_ql_path = f"output/{rfl_basename}.png"
