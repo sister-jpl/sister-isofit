@@ -205,7 +205,7 @@ def main():
     # Generate metadata in .met.json file for each product type
     print("Generating metadata files from runconfig")
 
-    isofit_config_file = glob.glob("/work/config/*_modtran.json")[0]
+    isofit_config_file = f"work/config/{rdn_basename}_modtran.json"
     print(f'ISOFIT config file: {isofit_config_file}')
 
     with open(isofit_config_file, 'r') as in_obj:
