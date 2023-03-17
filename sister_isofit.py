@@ -215,8 +215,7 @@ def main():
                       f"output/{rfl_basename}.met.json",
                       {'product': 'RFL',
                       'processing_level': 'L2A',
-                      'description' : rfl_description,
-                      'isofit_config': isofit_config})
+                      'description' : rfl_description})
 
     generate_metadata(run_config,
                       f"output/{rfl_basename}_UNC.met.json",
