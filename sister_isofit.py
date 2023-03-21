@@ -6,7 +6,6 @@ Space-based Imaging Spectroscopy and Thermal PathfindER
 Author: Winston Olson-Duvall
 """
 
-import glob
 import json
 import os
 import subprocess
@@ -205,12 +204,6 @@ def main():
     # Generate metadata in .met.json file for each product type
     print("Generating metadata files from runconfig")
 
-    isofit_config_file = f"work/config/{rdn_basename}_modtran.json"
-    print(f'ISOFIT config file: {isofit_config_file}')
-
-    with open(isofit_config_file, 'r') as in_obj:
-        isofit_config =json.load(in_obj)
-
     generate_metadata(run_config,
                       f"output/{rfl_basename}.met.json",
                       {'product': 'RFL',
@@ -249,6 +242,9 @@ def main():
     shutil.copyfile(f"work/output/{rdn_basename}_atm_interp", atm_img_path)
     shutil.copyfile(f"work/output/{rdn_basename}_atm_interp.hdr", atm_hdr_path)
 
+    isofit_config_file = f"work/config/{rdn_basename}_modtran.json"
+    shutil.copyfile(isofit_config_file, f"output/{rfl_basename}_modtran.json")
+
     # Update descriptions in ENVI headers
     update_header_descriptions(rfl_hdr_path, rfl_description)
     update_header_descriptions(unc_hdr_path, unc_description)
@@ -257,7 +253,8 @@ def main():
     # Also move log file and runconfig
     shutil.copyfile(f"work/{log_basename}", f"output/{log_basename}")
     shutil.copyfile("runconfig.json", f"output/{rfl_basename}.runconfig.json")
-
+    shutil.copyfile(f"work/config/{rdn_basename}_modtran.json",
+                    f"output/{rfl_basename}_modtran.json")
 
 if __name__ == "__main__":
     main()
