@@ -120,7 +120,7 @@ def main():
 
     instrument = rfl_basename.split('_')[1]
 
-    surface_config = '"work/surface_20221001.json"'
+    surface_config = 'work/surface_20221001.json'
 
     if instrument == "EMIT":
         sensor = 'emit'
