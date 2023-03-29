@@ -252,6 +252,7 @@ def main():
 
     # Also move log file and runconfig
     shutil.copyfile(f"work/{log_basename}", f"output/{log_basename}")
+    shutil.copyfile(f"run.log", f"output/{rfl_basename}_run.log")
     shutil.copyfile("runconfig.json", f"output/{rfl_basename}.runconfig.json")
     shutil.copyfile(f"work/config/{rdn_basename}_modtran.json",
                     f"output/{rfl_basename}_modtran.json")
