@@ -34,3 +34,4 @@ cd isofit
 pip install -e .
 pip install hy_tools_lite==1.1.1
 pip install Pillow==9.2.0
+pip install ray==1.9.2
