@@ -126,10 +126,10 @@ def main():
         sensor = 'emit'
         temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
         surface_config = "work/emit_surface_20221001.json"
-    elif instrument == "XAVNG":
+    elif instrument == "AVNG":
         sensor = 'ang'
         temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
-    elif instrument == "XAVCL":
+    elif instrument == "AVCL":
         sensor = 'avcl'
         temp_basename = f'f{rdn_basename.split("_")[4][2:8]}t00p00r00'
     else:
