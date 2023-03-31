@@ -240,8 +240,8 @@ def main():
     shutil.copyfile(f"work/output/{rdn_basename}_rfl.hdr", rfl_hdr_path)
     shutil.copyfile(f"work/output/{rdn_basename}_uncert", unc_img_path)
     shutil.copyfile(f"work/output/{rdn_basename}_uncert.hdr", unc_hdr_path)
-    shutil.copyfile(f"work/output/{rdn_basename}_atm_interp", atm_img_path)
-    shutil.copyfile(f"work/output/{rdn_basename}_atm_interp.hdr", atm_hdr_path)
+    # shutil.copyfile(f"work/output/{rdn_basename}_atm_interp", atm_img_path)
+    # shutil.copyfile(f"work/output/{rdn_basename}_atm_interp.hdr", atm_hdr_path)
 
     isofit_config_file = f"work/config/{rdn_basename}_modtran.json"
     shutil.copyfile(isofit_config_file, f"output/{rfl_basename}_modtran.json")
