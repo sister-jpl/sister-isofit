@@ -217,11 +217,11 @@ def main():
                       'processing_level': 'L2A',
                       'description' : unc_description})
 
-    generate_metadata(run_config,
-                      f"output/{rfl_basename}_ATM.met.json",
-                      {'product': 'RFL_ATM',
-                      'processing_level': 'L2A',
-                      'description' : atm_description})
+    # generate_metadata(run_config,
+    #                   f"output/{rfl_basename}_ATM.met.json",
+    #                   {'product': 'RFL_ATM',
+    #                   'processing_level': 'L2A',
+    #                   'description' : atm_description})
 
     # Generate quicklook
     rfl_ql_path = f"output/{rfl_basename}.png"
@@ -249,7 +249,7 @@ def main():
     # Update descriptions in ENVI headers
     update_header_descriptions(rfl_hdr_path, rfl_description)
     update_header_descriptions(unc_hdr_path, unc_description)
-    update_header_descriptions(atm_hdr_path, atm_description)
+    # update_header_descriptions(atm_hdr_path, atm_description)
 
     # Also move log file and runconfig
     shutil.copyfile(f"work/{log_basename}", f"output/{log_basename}")
