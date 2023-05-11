@@ -187,8 +187,7 @@ def main():
         f"--wavelength_path={wavelengths_path}",
         f"--surface_path={surface_model_path}",
         f"--segmentation_size={run_config['inputs']['config']['segmentation_size']}",
-        f"--log_file=work/{log_basename}",
-        "--pressure_elevation"
+        f"--log_file=work/{log_basename}"
     ]
 
     print("Running apply_oe command: " + " ".join(cmd))
