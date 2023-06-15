@@ -120,12 +120,12 @@ def main():
 
     instrument = rfl_basename.split('_')[1]
 
-    surface_config = 'work/surface_20221001.json'
+    surface_config = 'work/surface_20221020.json'
 
     if instrument == "EMIT":
         sensor = 'emit'
         temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
-        surface_config = "work/emit_surface_20221001.json"
+        surface_config = "work/emit_surface_20221020.json"
     elif instrument == "AVNG":
         sensor = 'ang'
         temp_basename = f'{sensor}{rdn_basename.split("_")[4]}'
