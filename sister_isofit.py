@@ -19,7 +19,7 @@ from PIL import Image
 
 import hytools_lite as ht
 from isofit.utils import surface_model
-
+import time
 
 def get_rfl_basename(rdn_basename, crid):
     # Replace product type
@@ -191,7 +191,10 @@ def main():
     ]
 
     print("Running apply_oe command: " + " ".join(cmd))
+
+    start_time = time.time()
     subprocess.run(" ".join(cmd), shell=True)
+    end_time = time.time()
 
     # Make output dir
     if not os.path.exists("output"):
@@ -199,7 +202,7 @@ def main():
 
     rfl_description ="Surface reflectance (unitless)"
     unc_description ="Surface reflectance uncertainties (unitless)"
-    atm_description ="Atmospheric state AOT550, Pressure Elevation, H2O"
+    # atm_description ="Atmospheric state AOT550, Pressure Elevation, H2O"
 
     # Generate metadata in .met.json file for each product type
     print("Generating metadata files from runconfig")
@@ -208,7 +211,8 @@ def main():
                       f"output/{rfl_basename}.met.json",
                       {'product': 'RFL',
                       'processing_level': 'L2A',
-                      'description' : rfl_description})
+                      'description' : rfl_description,
+                      'apply_oe_runtime': end_time-start_time})
 
     generate_metadata(run_config,
                       f"output/{rfl_basename}_UNC.met.json",
@@ -226,8 +230,8 @@ def main():
     rfl_hdr_path = f"output/{rfl_basename}.hdr"
     unc_img_path = f"output/{rfl_basename}_UNC.bin"
     unc_hdr_path = f"output/{rfl_basename}_UNC.hdr"
-    atm_img_path = f"output/{rfl_basename}_ATM.bin"
-    atm_hdr_path = f"output/{rfl_basename}_ATM.hdr"
+    # atm_img_path = f"output/{rfl_basename}_ATM.bin"
+    # atm_hdr_path = f"output/{rfl_basename}_ATM.hdr"
 
     shutil.copyfile(f"work/output/{rdn_basename}_rfl", rfl_img_path)
     shutil.copyfile(f"work/output/{rdn_basename}_rfl.hdr", rfl_hdr_path)
@@ -243,7 +247,7 @@ def main():
 
     # Also move log file and runconfig
     shutil.copyfile(f"work/{log_basename}", f"output/{log_basename}")
-    shutil.copyfile(f"run.log", f"output/{rfl_basename}_run.log")
+    shutil.copyfile("run.log", f"output/{rfl_basename}_run.log")
     shutil.copyfile("runconfig.json", f"output/{rfl_basename}.runconfig.json")
     shutil.copyfile(f"work/config/{rdn_basename}_modtran.json",
                     f"output/{rfl_basename}_modtran.json")
