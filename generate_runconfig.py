@@ -12,10 +12,6 @@ import sys
 import argparse
 
 
-def get_local_path(p):
-    # return os.path.join(os.getcwd(), os.path.basename(p))
-    return p
-
 def main():
     """
         This function takes as input the path to an inputs.json file and exports a run config json
@@ -23,7 +19,6 @@ def main():
 
     """
 
-    cwd = os.getcwd()
     parser = argparse.ArgumentParser(description='parse inputs to create inputs.json.')
     parser.add_argument('--crid', dest='crid', help='crid value')
     parser.add_argument('--n_cores', dest='n_cores', type=int, help='number of cores')
@@ -38,9 +33,9 @@ def main():
     inputs["positional"] = []
 
     files = []
-    files.append({"observation_dataset": get_local_path(args.observation_dataset)})
-    files.append({"location_dataset": get_local_path(args.location_dataset)})
-    files.append({"radiance_dataset": get_local_path(args.radiance_dataset)})
+    files.append({"observation_dataset": args.observation_dataset})
+    files.append({"location_dataset": args.location_dataset})
+    files.append({"radiance_dataset": args.radiance_dataset})
 
     config = dict()
     config["crid"] = args.crid
