@@ -26,6 +26,7 @@ def main():
     parser.add_argument('--observation_dataset', dest='observation_dataset', help='observation dataset directory with full path')
     parser.add_argument('--location_dataset', dest='location_dataset', help='location dataset directory with full path')
     parser.add_argument('--radiance_dataset', dest='radiance_dataset', help='radiance dataset directory with full path')
+    parser.add_argument('--experimental', help='If true then designates data as experiemntal')
 
     args = parser.parse_args()
 
@@ -41,11 +42,10 @@ def main():
     config["crid"] = args.crid
     config["n_cores"] = args.n_cores
     config["segmentation_size"] = args.segmentation_size
+    config["experimental"] = True if args.experimental.lower() == "true" else False
 
     inputs["file"] = files
     inputs["config"] = config
-
-
 
     # Add inputs to runconfig
     run_config = {"inputs": inputs}

@@ -6,6 +6,7 @@ Space-based Imaging Spectroscopy and Thermal PathfindER
 Author: Winston Olson-Duvall
 """
 
+import glob
 import json
 import os
 import subprocess
@@ -218,8 +219,13 @@ def main():
     if not os.path.exists("output"):
         os.mkdir("output")
 
-    rfl_description ="Surface reflectance (unitless)"
-    unc_description ="Surface reflectance uncertainties (unitless)"
+    experimental = run_config['inputs']['config']['experimental']
+    if experimental:
+        disclaimer = "(DISCLAIMER: THIS DATA IS EXPERIMENTAL AND NOT INTENDED FOR SCIENTIFIC USE) "
+    else:
+        disclaimer = ""
+    rfl_description = f"{disclaimer}Surface reflectance (unitless)"
+    unc_description = f"{disclaimer}Surface reflectance uncertainties (unitless)"
     # atm_description ="Atmospheric state AOT550, Pressure Elevation, H2O"
 
     # Generate metadata in .met.json file for each product type
@@ -269,6 +275,12 @@ def main():
     shutil.copyfile("runconfig.json", f"output/{rfl_basename}.runconfig.json")
     shutil.copyfile(f"work/config/{rdn_basename}_modtran.json",
                     f"output/{rfl_basename}_modtran.json")
+
+    # If experimental, prefix filenames with "EXPERIMENTAL-"
+    if experimental:
+        for file in glob.glob(f"output/SISTER*"):
+            shutil.move(file, f"output/EXPERIMENTAL-{os.path.basename(file)}")
+
 
 if __name__ == "__main__":
     main()
