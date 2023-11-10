@@ -110,12 +110,30 @@ def main():
     isofit_dir = os.path.join(os.path.dirname(sister_isofit_dir), "isofit")
 
     rdn_basename = None
+    rdn_path = None
+    loc_basename = None
+    loc_path = None
+    obs_basename = None
+    obs_path = None
     for file in run_config["inputs"]["file"]:
         if "radiance_dataset" in file:
             rdn_basename = os.path.basename(file["radiance_dataset"])
+            rdn_path = file["radiance_dataset"]
 
+        if "location_dataset" in file:
+            loc_basename = os.path.basename(file["location_dataset"])
+            loc_path = file["location_dataset"]
+
+        if "observation_dataset" in file:
+            obs_basename = os.path.basename(file["observation_dataset"])
+            obs_path = file["observation_dataset"]
+    '''
     loc_basename = f"{rdn_basename}_LOC"
+    loc_path = f"{rdn_path}_LOC"
+
     obs_basename = f"{rdn_basename}_OBS"
+    obs_path = f"{rdn_path}_OBS"
+    '''
     rfl_basename = get_rfl_basename(rdn_basename, run_config["inputs"]["config"]["crid"])
 
     instrument = rfl_basename.split('_')[1]
@@ -145,12 +163,12 @@ def main():
     obs_hdr_path = f"work/{temp_basename}_OBS.hdr"
 
     # Copy the input files into the work directory (don't use .bin)
-    shutil.copyfile(f"input/{rdn_basename}/{rdn_basename}.bin" ,rdn_img_path)
-    shutil.copyfile(f"input/{rdn_basename}/{rdn_basename}.hdr" ,rdn_hdr_path)
-    shutil.copyfile(f"input/{loc_basename}/{loc_basename}.bin" ,loc_img_path)
-    shutil.copyfile(f"input/{loc_basename}/{loc_basename}.hdr" ,loc_hdr_path)
-    shutil.copyfile(f"input/{obs_basename}/{obs_basename}.bin" ,obs_img_path)
-    shutil.copyfile(f"input/{obs_basename}/{obs_basename}.hdr" ,obs_hdr_path)
+    shutil.copyfile(f"{rdn_path}/{rdn_basename}.bin" ,rdn_img_path)
+    shutil.copyfile(f"{rdn_path}/{rdn_basename}.hdr" ,rdn_hdr_path)
+    shutil.copyfile(f"{loc_path}/{loc_basename}.bin" ,loc_img_path)
+    shutil.copyfile(f"{loc_path}/{loc_basename}.hdr" ,loc_hdr_path)
+    shutil.copyfile(f"{obs_path}/{obs_basename}.bin" ,obs_img_path)
+    shutil.copyfile(f"{obs_path}/{obs_basename}.hdr" ,obs_hdr_path)
 
     #Update radiance basename
     rdn_basename = os.path.basename(rdn_img_path)
