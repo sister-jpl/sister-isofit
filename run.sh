@@ -20,7 +20,7 @@ mkdir -p output
 REPO_DIR=$(cd "$(dirname "$0")"; pwd -P)
 
 # Generate runconfig
-python ${REPO_DIR}/generate_runconfig.py ${@:1}
+python ${REPO_DIR}/generate_runconfig.py "${@:1}"
 
 # Execute isofit
 python ${REPO_DIR}/sister_isofit.py output/runconfig.json

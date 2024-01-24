@@ -30,39 +30,20 @@ def main():
 
     args = parser.parse_args()
 
-    inputs = dict()
-    inputs["positional"] = []
-
-    files = []
-    files.append({"observation_dataset": args.observation_dataset})
-    files.append({"location_dataset": args.location_dataset})
-    files.append({"radiance_dataset": args.radiance_dataset})
-
-    config = dict()
-    config["crid"] = args.crid
-    config["n_cores"] = args.n_cores
-    config["segmentation_size"] = args.segmentation_size
-    config["experimental"] = True if args.experimental.lower() == "true" else False
-
-    inputs["file"] = files
-    inputs["config"] = config
-
-    # Add inputs to runconfig
-    run_config = {"inputs": inputs}
-
-    # Add metadata to runconfig
-    rdn_basename = None
-    for file in run_config["inputs"]["file"]:
-        if "radiance_dataset" in file:
-            rdn_basename = os.path.basename(file["radiance_dataset"])
-
-    met_json_path = os.path.join(file["radiance_dataset"], f"{rdn_basename}.met.json")
-    with open(met_json_path, "r") as f:
-        metadata = json.load(f)
-    run_config["metadata"] = metadata
+    run_config = {
+        "inputs": {
+            "radiance_dataset": args.radiance_dataset,
+            "observation_dataset": args.observation_dataset,
+            "location_dataset": args.location_dataset,
+            "n_cores": args.n_cores,
+            "segmentation_size": args.segmentation_size,
+            "crid": args.crid,
+        }
+    }
+    run_config["inputs"]["experimental"] = True if args.experimental.lower() == "true" else False
 
     # Write out runconfig.json
-    config_file = "output/runconfig.json"
+    config_file = "runconfig.json"
     with open(config_file, "w") as outfile:
         json.dump(run_config, outfile, indent=4)
 
