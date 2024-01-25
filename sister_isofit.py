@@ -293,7 +293,7 @@ def main():
     update_header_descriptions(unc_hdr_path, unc_description)
 
     # Also move log file and runconfig
-    shutil.copyfile(f"work/{log_basename}", f"output/{log_basename}")
+    shutil.copyfile(f"work/{log_basename}", f"output/{rfl_basename}.log")
     # shutil.copyfile("run.log", f"output/{rfl_basename}_run.log")
     shutil.copyfile("runconfig.json", f"output/{rfl_basename}.runconfig.json")
     # shutil.copyfile(f"work/config/{rdn_basename}_modtran.json",

@@ -20,13 +20,13 @@ def main():
     """
 
     parser = argparse.ArgumentParser(description='parse inputs to create inputs.json.')
-    parser.add_argument('--crid', dest='crid', help='crid value')
-    parser.add_argument('--n_cores', dest='n_cores', type=int, help='number of cores')
-    parser.add_argument('--segmentation_size', dest='segmentation_size', type=int, help='segmentation size')
+    parser.add_argument('--crid', dest='crid', help='crid value', default="000")
+    parser.add_argument('--n_cores', dest='n_cores', type=int, help='number of cores', default=32)
+    parser.add_argument('--segmentation_size', dest='segmentation_size', type=int, help='segmentation size', default=50)
     parser.add_argument('--observation_dataset', dest='observation_dataset', help='observation dataset directory with full path')
     parser.add_argument('--location_dataset', dest='location_dataset', help='location dataset directory with full path')
     parser.add_argument('--radiance_dataset', dest='radiance_dataset', help='radiance dataset directory with full path')
-    parser.add_argument('--experimental', help='If true then designates data as experiemntal')
+    parser.add_argument('--experimental', help='If true then designates data as experiemntal', default="True")
 
     args = parser.parse_args()
 
