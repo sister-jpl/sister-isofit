@@ -7,9 +7,9 @@ app_dir=$(dirname ${pge_dir})
 
 conda create -y --name isofit python=3.8
 source activate isofit
-conda install -y gdal
-conda install -y -c conda-forge gfortran awscli
-conda install -y -c anaconda make
+conda install -y gdal=3.6.2
+conda install -y -c conda-forge gfortran=13.1.0 awscli=1.29.8
+conda install -y -c anaconda make=4.2.1
 
 cd $app_dir
 
