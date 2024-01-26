@@ -94,7 +94,7 @@ def update_header_descriptions(hdr_path, description):
     envi.write_envi_header(hdr_path, hdr)
 
 
-def generate_stac_metadata(header_file):
+def generate_stac_metadata(header_file, apply_oe_runtime):
 
     header = envi.read_envi_header(header_file)
     base_name = os.path.basename(header_file)[:-4]
@@ -121,7 +121,8 @@ def generate_stac_metadata(header_file):
         'sensor': base_tokens[1],
         'description': header['description'],
         'product': product,
-        'processing_level': base_tokens[2]
+        'processing_level': base_tokens[2],
+        'apply_oe_runtime': apply_oe_runtime
     }
     return metadata
 
@@ -258,6 +259,7 @@ def main():
     start_time = time.time()
     subprocess.run(" ".join(cmd), shell=True)
     end_time = time.time()
+    apply_oe_runtime = end_time - start_time
 
     # Make output dir
     if not os.path.exists("output"):
@@ -317,7 +319,7 @@ def main():
     hdr_files = glob.glob("output/*SISTER*.hdr")
     hdr_files.sort()
     for hdr_file in hdr_files:
-        metadata = generate_stac_metadata(hdr_file)
+        metadata = generate_stac_metadata(hdr_file, apply_oe_runtime)
         assets = {
             "envi_binary": f"./{os.path.basename(hdr_file.replace('.hdr', '.bin'))}",
             "envi_header": f"./{os.path.basename(hdr_file)}"
