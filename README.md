@@ -6,88 +6,70 @@ The sister-isofit repository is a wrapper for the L2A atmospheric correction rep
 [ISOFIT](https://github.com/isofit/isofit).  ISOFIT contains a set of routines and utilities for fitting surface, 
 atmosphere and instrument models to imaging spectrometer data.
 
-## Dependencies
-
-This repository is built to run on SISTER (Space-based Imaging Spectroscopy and Thermal pathfindER), a data 
-processing back-end that allows for the registration of algorithms as executable containers and execution of those 
-containers at scale.  The manifest file that configures this repository for registration and describes all of its 
-necessary dependencies is called `algorithm_config.yaml`.  In this file you will find:
-
-* The repository URL and version to register
-* The base Docker image which this repository gets installed into, and a reference to its Dockerfile
-* The build script which is used to install this repository into the base Docker image
-
-Specific dependencies for executing the code in this repository can be found in both the Dockerfile and the build 
-script.
-
-In addition to the above dependencies, you will need access to the MAAP API via the maap-py library in order to 
-register algorithms and submit jobs.  maap-py can be obtained by running:
-
-    git clone --single-branch --branch system-test-8 https://gitlab.com/geospec/maap-py.git
-
 ## PGE Arguments
 
 The sister-isofit PGE takes the following arguments:
 
 
-| Argument            | Type   | Description                                      | Default |
-|---------------------|--------|--------------------------------------------------|---------|
-| radiance_dataset    | file   | S3 URL to the radiance dataset folder            | -       |
-| location_dataset    | file   | S3 URL to the location dataset folder            | -       |
-| observation_dataset | file   | S3 URL to the radiance dataset folder            | -       |
-| segmentation_size   | config | Size of segments to construct for empirical line | 50      |
-| n_cores             | config | Number of cores for parallelization              | 32      |
-| crid                | config | Composite Release ID to tag file names           | 000     |
+| Argument            | Description                                      | Default |
+|---------------------|--------------------------------------------------|---------|
+| radiance_dataset    | Radiance dataset folder                          | -       |
+| location_dataset    | Location dataset folder                          | -       |
+| observation_dataset | Observation dataset folder                       | -       |
+| segmentation_size   | Size of segments to construct for empirical line | 50      |
+| n_cores             | Number of cores for parallelization              | 32      |
+| crid                | Composite Release ID to tag file names           | 000     |
+| experimental        | Designates outputs as "experimental"             | 'True'  |
 
 ## Outputs
 
 The L2A atmospheric correction PGE outputs ENVI formatted binary data cubes along with associated header files. The 
 outputs of the PGE use the following naming convention:
 
-    SISTER_INSTRUMENT_LEVEL_PRODUCT_YYYYMMDDTHHMMSS_CRID(_ANCILLARY).EXTENSION
+    (EXPERIMENTAL-)SISTER_INSTRUMENT_LEVEL_PRODUCT_YYYYMMDDTHHMMSS_CRID(_ANCILLARY).EXTENSION
 
-where `(_ANCILLARY)` is optional and is used to identify ancillary products.
+where `(_ANCILLARY)` is optional and is used to identify ancillary products and `(EXPERIMENTAL-)` is also optional and 
+is only added when the "experimental" flag is set to True.
 
-| Product                                    | Format, Units        | Example filename                                       |
-|--------------------------------------------|----------------------|--------------------------------------------------------|
-| Reflectance binary file                    | ENVI, Unitless (0-1) | SISTER_AVNG_L2A_RFL_20220814T183137_000.bin            |
-| Reflectance header file                    | ASCII text           | SISTER_AVNG_L2A_RFL_20220814T183137_000.hdr            |
-| Reflectance metadata file                  | JSON                 | SISTER_AVNG_L2A_RFL_20220814T183137_000.met.json       |
-| Reflectance browse image                   | PNG                  | SISTER_AVNG_L2A_RFL_20220814T183137_000.png            |
-| Reflectance uncertainty binary file        | ENVI, Unitless (0-1) | SISTER_AVNG_L2A_RFL_20220814T183137_000_UNC.bin        |
-| Reflectance uncertainty header file        | Text                 | SISTER_AVNG_L2A_RFL_20220814T183137_000_UNC.hdr        |
-| Reflectance uncertainty metadata file      | JSON                 | SISTER_AVNG_L2A_RFL_20220814T183137_000_UNC.met.json   |
-| PGE log file                               | Text                 | SISTER_AVNG_L2A_RFL_20220814T183137_000.log            |
-| PGE run config                             | JSON                 | SISTER_AVNG_L2A_RFL_20220814T183137_000.runconfig.json |
+The following data products are produced:
 
-## Registering the Repository with SISTER
+| Product                                                | Format, Units        | Example filename                                       |
+|--------------------------------------------------------|----------------------|--------------------------------------------------------|
+| Reflectance binary file                                | ENVI, Unitless (0-1) | SISTER_AVCL_L2A_RFL_20110513T175417_000.bin            |
+| Reflectance header file                                | ASCII text           | SISTER_AVCL_L2A_RFL_20110513T175417_000.hdr            |
+| Reflectance metadata file (STAC formatted)             | JSON                 | SISTER_AVCL_L2A_RFL_20110513T175417_000.json           |
+| Reflectance browse image                               | PNG                  | SISTER_AVCL_L2A_RFL_20110513T175417_000.png            |
+| Reflectance uncertainty binary file                    | ENVI, Unitless (0-1) | SISTER_AVCL_L2A_RFL_20110513T175417_000_UNC.bin        |
+| Reflectance uncertainty header file                    | Text                 | SISTER_AVCL_L2A_RFL_20110513T175417_000_UNC.hdr        |
+| Reflectance uncertainty metadata file (STAC formatted) | JSON                 | SISTER_AVCL_L2A_RFL_20110513T175417_000_UNC.json       |
+| PGE log file                                           | Text                 | SISTER_AVCL_L2A_RFL_20110513T175417_000.log            |
+| PGE run config                                         | JSON                 | SISTER_AVCL_L2A_RFL_20110513T175417_000.runconfig.json |
 
-    from maap.maap import MAAP
-    
-    maap = MAAP(maap_host="34.216.77.111")
-    
-    algo_config_path = "sister-isofit/algorithm_config.yaml"
-    response = maap.register_algorithm_from_yaml_file(file_path=algo_config_path)
-    print(response.text)
+Metadata files are [STAC formatted](https://stacspec.org/en) and compatible with tools in the [STAC ecosystem](https://stacindex.org/ecosystem).
 
-## Submitting a Job on SISTER
+## Executing the Algorithm
 
-    from maap.maap import MAAP
-    
-    maap = MAAP(maap_host="34.216.77.111")
-    
-    isofit_job_response = maap.submitJob(
-        algo_id="sister-isofit",
-        version="1.0.0",
-        radiance_dataset="s3://s3.us-west-2.amazonaws.com:80/sister-ops-workspace/LOM/PRODUCTS/AVNG/L1B_RDN/2022/08/14/SISTER_AVNG_L1B_RDN_20220814T183137_000",
-        location_dataset="s3://s3.us-west-2.amazonaws.com:80/sister-ops-workspace/LOM/PRODUCTS/AVNG/L1B_RDN/2022/08/14/SISTER_AVNG_L1B_RDN_20220814T183137_000_LOC",
-        observation_dataset="s3://s3.us-west-2.amazonaws.com:80/sister-ops-workspace/LOM/PRODUCTS/AVNG/L1B_RDN/2022/08/14/SISTER_AVNG_L1B_RDN_20220814T183137_000_OBS",
-        segmentation_size=50,
-        n_cores=32,
-        crid="000",
-        publish_to_cmr=False,
-        cmr_metadata={},
-        queue="sister-job_worker-32gb",
-        identifier="SISTER_AVNG_L2A_RFL_20220814T183137_000")
-    
-    print(isofit_job_response.id, isofit_job_response.status)
+This algorithm requires [Anaconda Python](https://www.anaconda.com/download)
+
+To install and run the code, first clone the repository and execute the install script:
+
+    git clone https://github.com/sister-jpl/sister-isofit.git
+    cd sister-isofit
+    ./install.sh
+    cd ..
+
+Then, create a working directory and enter it:
+
+    mkdir WORK_DIR
+    cd WORK_DIR
+
+Copy input files to the work directory. For each "dataset" input, create a folder with the dataset name, then download 
+the data file(s) and STAC JSON file into the folder.  For example, the radiance dataset input would look like this:
+
+    WORK_DIR/SISTER_AVCL_L1B_RDN_20110513T175417_000/SISTER_AVCL_L1B_RDN_20110513T175417_000.bin
+    WORK_DIR/SISTER_AVCL_L1B_RDN_20110513T175417_000/SISTER_AVCL_L1B_RDN_20110513T175417_000.hdr
+    WORK_DIR/SISTER_AVCL_L1B_RDN_20110513T175417_000/SISTER_AVCL_L1B_RDN_20110513T175417_000.json
+
+Finally, run the code 
+
+    ../sister-isofit/run.sh --radiance_dataset SISTER_AVCL_L1B_RDN_20110513T175417_000 --location_dataset SISTER_AVCL_L1B_RDN_20110513T175417_000_LOC --observation_dataset SISTER_AVCL_L1B_RDN_20110513T175417_000_OBS
