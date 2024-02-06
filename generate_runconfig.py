@@ -9,6 +9,7 @@ Author: Adam Chlus, Winston Olson-Duvall
 import json
 import os
 import sys
+import argparse
 
 
 def main():
@@ -18,23 +19,28 @@ def main():
 
     """
 
-    inputs_json = sys.argv[1]
+    parser = argparse.ArgumentParser(description='parse inputs to create inputs.json.')
+    parser.add_argument('--crid', dest='crid', help='crid value', default="000")
+    parser.add_argument('--n_cores', dest='n_cores', type=int, help='number of cores', default=32)
+    parser.add_argument('--segmentation_size', dest='segmentation_size', type=int, help='segmentation size', default=50)
+    parser.add_argument('--observation_dataset', dest='observation_dataset', help='observation dataset directory with full path')
+    parser.add_argument('--location_dataset', dest='location_dataset', help='location dataset directory with full path')
+    parser.add_argument('--radiance_dataset', dest='radiance_dataset', help='radiance dataset directory with full path')
+    parser.add_argument('--experimental', help='If true then designates data as experiemntal', default="True")
 
-    # Add inputs to runconfig
-    with open(inputs_json, "r") as in_file:
-        inputs = json.load(in_file)
-    run_config = {"inputs": inputs}
+    args = parser.parse_args()
 
-    # Add metadata to runconfig
-    rdn_basename = None
-    for file in run_config["inputs"]["file"]:
-        if "radiance_dataset" in file:
-            rdn_basename = os.path.basename(file["radiance_dataset"])
-
-    met_json_path = os.path.join("input", rdn_basename, f"{rdn_basename}.met.json")
-    with open(met_json_path, "r") as f:
-        metadata = json.load(f)
-    run_config["metadata"] = metadata
+    run_config = {
+        "inputs": {
+            "radiance_dataset": args.radiance_dataset,
+            "observation_dataset": args.observation_dataset,
+            "location_dataset": args.location_dataset,
+            "n_cores": args.n_cores,
+            "segmentation_size": args.segmentation_size,
+            "crid": args.crid,
+        }
+    }
+    run_config["inputs"]["experimental"] = True if args.experimental.lower() == "true" else False
 
     # Write out runconfig.json
     config_file = "runconfig.json"
